@@ -17,4 +17,8 @@ ResetExplode-dist/
 *.log
 
 # Drivers seriais embutidos (RESET MAKER): as DLLs fazem parte dos pacotes assinados
-!Drivers/**
+!Windows/Drivers/**
+
+# Distribuição Windows gerada pelo workflow
+dist/
+ResetExplode.zip

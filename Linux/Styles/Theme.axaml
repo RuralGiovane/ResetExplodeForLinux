@@ -1,0 +1,68 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Paleta, tipografia e dimensões provenientes de ../Theme.xaml. -->
+  <Styles.Resources>
+    <SolidColorBrush x:Key="Bg" Color="#000000" />
+    <SolidColorBrush x:Key="Panel" Color="#080808" />
+    <SolidColorBrush x:Key="Card" Color="#0E0E0E" />
+    <SolidColorBrush x:Key="Hover" Color="#181818" />
+    <SolidColorBrush x:Key="Line" Color="#1F1F1F" />
+    <SolidColorBrush x:Key="LineStrong" Color="#3A3A3A" />
+    <SolidColorBrush x:Key="Fg" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="Muted" Color="#8C8C8C" />
+    <SolidColorBrush x:Key="Faint" Color="#4A4A4A" />
+    <SolidColorBrush x:Key="Ink" Color="#000000" />
+    <FontFamily x:Key="Mono">Cascadia Mono, DejaVu Sans Mono, monospace</FontFamily>
+  </Styles.Resources>
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg}" />
+    <Setter Property="FontFamily" Value="Inter, Noto Sans, DejaVu Sans, sans-serif" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="26" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.sub">
+    <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.label">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+  </Style>
+  <Style Selector="TextBlock.big">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontFamily" Value="{StaticResource Mono}" />
+  </Style>
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource Card}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="20" />
+  </Style>
+  <Style Selector="Button">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="22,11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource Fg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+  </Style>
+  <Style Selector="Button.outline">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{DynamicResource Fg}" />
+    <Setter Property="Background" Value="{DynamicResource Line}" />
+    <Setter Property="Height" Value="4" />
+  </Style>
+</Styles>

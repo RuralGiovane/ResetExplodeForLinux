@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- As mesmas fontes são compiladas nos dois destinos, sem duplicar os algoritmos. -->
+    <Compile Include="../../Shared/Benchmarks/BenchRenderer.cs" Link="BenchRenderer.cs" />
+    <Compile Include="../../Shared/Benchmarks/GameSimBench.cs" Link="GameSimBench.cs" />
+  </ItemGroup>
+</Project>

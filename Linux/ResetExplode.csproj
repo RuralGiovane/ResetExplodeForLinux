@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>ResetExplode</AssemblyName>
+    <RootNamespace>ResetExplode</RootNamespace>
+    <Product>RESET EXPLODE</Product>
+    <Version>0.16.0</Version>
+    <Optimize>true</Optimize>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Core/**;Hardware/**;SmokeTests/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <ProjectReference Include="Core/ResetExplode.Core.csproj" />
+    <ProjectReference Include="Hardware/ResetExplode.Hardware.csproj" />
+    <AvaloniaResource Include="../Assets/logo.png" Link="Assets/logo.png" />
+  </ItemGroup>
+</Project>

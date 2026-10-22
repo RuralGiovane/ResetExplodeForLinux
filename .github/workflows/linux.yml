@@ -1,0 +1,31 @@
+name: Validar Linux
+
+on:
+  push:
+    paths:
+      - 'Linux/**'
+      - 'Shared/**'
+      - 'Assets/**'
+      - '.github/workflows/linux.yml'
+  pull_request:
+    paths:
+      - 'Linux/**'
+      - 'Shared/**'
+      - 'Assets/**'
+      - '.github/workflows/linux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Compilar Avalonia e executar a suíte Linux
+        run: bash Linux/validate.sh

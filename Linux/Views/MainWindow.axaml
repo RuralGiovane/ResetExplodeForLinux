@@ -1,0 +1,270 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:hw="clr-namespace:ResetExplode.Hardware;assembly=ResetExplode.Hardware"
+        x:Class="ResetExplode.MainWindow" Title="RESET EXPLODE"
+        Width="1180" Height="850" MinWidth="820" MinHeight="620">
+  <Grid ColumnDefinitions="210,*">
+    <Border Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Padding="20,28">
+      <Grid RowDefinitions="Auto,Auto,Auto,* ,Auto">
+        <Image Source="avares://ResetExplode/Assets/logo.png" Height="52" Stretch="Uniform" />
+        <TextBlock Grid.Row="1" Text="RESET EXPLODE" Classes="label" Margin="0,40,0,12" />
+        <StackPanel Grid.Row="2" Spacing="8">
+          <Button x:Name="SystemNav" Content="Sistema e sensores" Classes="primary" HorizontalAlignment="Stretch" Click="ShowSystem" Padding="12,11" />
+          <Button x:Name="BenchNav" Content="Benchmark" Classes="outline" HorizontalAlignment="Stretch" Click="ShowBench" Padding="12,11" />
+        </StackPanel>
+        <StackPanel Grid.Row="4" Spacing="8">
+          <TextBlock Text="LINUX · VERSÃO INICIAL" Classes="label" />
+          <TextBlock x:Name="SidebarCpuText" Text="CPU · aguardando leitura" Classes="sub" />
+          <TextBlock x:Name="SidebarRamText" Text="RAM · aguardando leitura" Classes="sub" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <ScrollViewer x:Name="SystemPage" Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="32,28" Spacing="20">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Sistema e sensores" Classes="h1" />
+          <TextBlock Text="Informações do computador e leituras em tempo real." Classes="sub" />
+          <TextBlock x:Name="TelemetryStatusText" Text="Detectando hardware…" Classes="sub" />
+        </StackPanel>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="VISÃO GERAL" Classes="label" />
+            <TextBlock x:Name="CpuSummaryText" Text="CPU · aguardando leitura" Classes="big" TextWrapping="Wrap" />
+            <TextBlock x:Name="RamSummaryText" Text="RAM · aguardando leitura" Classes="sub" />
+            <TextBlock Text="A temperatura exibida é a maior leitura válida dos sensores de CPU reconhecidos." Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="COMPUTADOR" Classes="label" />
+            <ItemsControl x:Name="SystemEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:SystemEntry">
+                  <Grid ColumnDefinitions="190,*" Margin="0,5">
+                    <TextBlock Text="{Binding Name}" Classes="sub" />
+                    <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="MAKER · PORTAS SERIAIS" Classes="label" />
+            <TextBlock Text="Portas USB seriais observadas no sistema. Atualize após conectar ou remover um dispositivo." Classes="sub" />
+            <Button x:Name="RefreshSerialButton" Content="ATUALIZAR PORTAS" Classes="outline" Click="RefreshSerial" />
+            <TextBlock x:Name="SerialStatusText" Text="Aguardando inventário…" Classes="sub" />
+            <ItemsControl x:Name="SerialEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:SerialPortEntry">
+                  <StackPanel Margin="0,5" Spacing="4">
+                    <TextBlock Text="{Binding Title}" />
+                    <TextBlock Text="{Binding Details}" Classes="sub" />
+                    <TextBlock Text="{Binding HardwareDescription}" Classes="sub" />
+                    <TextBlock Text="{Binding AliasDescription}" Classes="sub" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock x:Name="SerialGroupsText" Classes="sub" />
+            <TextBlock x:Name="SerialNoticesText" Classes="sub" />
+            <TextBlock Text="A exportação inclui os caminhos by-id, que podem conter números de série." Classes="sub" />
+            <WrapPanel>
+              <Button x:Name="SerialHtmlButton" Content="EXPORTAR MAKER HTML" Classes="outline" Click="ExportSerialHtml" Margin="0,0,8,8" />
+              <Button x:Name="SerialJsonButton" Content="EXPORTAR MAKER JSON" Classes="outline" Click="ExportSerialJson" Margin="0,0,0,8" />
+            </WrapPanel>
+            <TextBlock x:Name="SerialExportStatusText" Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="BATERIA E ALIMENTAÇÃO" Classes="label" />
+            <TextBlock Text="Dados reportados pelo kernel para cada fonte ou bateria. Wh e Ah são grandezas diferentes; leituras ausentes não indicam falha. Atualização automática a cada ~5 segundos; o botão permite antecipar uma leitura." Classes="sub" />
+            <Button x:Name="RefreshPowerButton" Content="ATUALIZAR ALIMENTAÇÃO" Classes="outline" Click="RefreshPower" />
+            <TextBlock x:Name="PowerStatusText" Text="Aguardando leitura…" Classes="sub" />
+            <ItemsControl x:Name="PowerEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:PowerSupply">
+                  <StackPanel Margin="0,10" Spacing="5">
+                    <TextBlock Text="{Binding Name}" Classes="label" />
+                    <TextBlock Text="{Binding Type}" Classes="sub" />
+                    <TextBlock Text="{Binding Scope}" Classes="sub" />
+                    <ItemsControl ItemsSource="{Binding Metrics}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="hw:SystemEntry">
+                          <Grid ColumnDefinitions="240,*" Margin="0,3">
+                            <TextBlock Text="{Binding Name}" Classes="sub" />
+                            <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock x:Name="PowerNoticesText" Classes="sub" />
+            <TextBlock Text="Exporta a última coleta concluída de alimentação, com sua data, modelos e valores reportados." Classes="sub" />
+            <WrapPanel>
+              <Button x:Name="PowerHtmlButton" Content="EXPORTAR ALIMENTAÇÃO HTML" Classes="outline" Click="ExportPowerHtml" Margin="0,0,8,8" />
+              <Button x:Name="PowerJsonButton" Content="EXPORTAR ALIMENTAÇÃO JSON" Classes="outline" Click="ExportPowerJson" Margin="0,0,0,8" />
+            </WrapPanel>
+            <TextBlock x:Name="PowerExportStatusText" Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="ARMAZENAMENTO" Classes="label" />
+            <TextBlock Text="Dispositivos e partições visíveis ao Linux. Capacidades podem se sobrepor; não representam espaço livre. Consulta SMART manual abaixo." Classes="sub" />
+            <Button x:Name="RefreshStorageButton" Content="ATUALIZAR DISPOSITIVOS" Classes="outline" Click="RefreshStorage" />
+            <TextBlock x:Name="StorageStatusText" Text="Aguardando inventário…" Classes="sub" />
+            <ItemsControl x:Name="StorageEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:BlockDevice">
+                  <StackPanel Margin="0,8" Spacing="4">
+                    <TextBlock Text="{Binding Title}" Classes="label" />
+                    <TextBlock Text="{Binding Capacity}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Details}" Classes="sub" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="CONSULTA SMART" Classes="label" />
+            <TextBlock Text="Selecione um dispositivo inteiro e consulte os dados reportados. Requer smartmontools e permissão de leitura do dispositivo; a consulta pode ativar um disco em repouso. Dispositivos virtuais e alguns adaptadores não oferecem SMART." Classes="sub" />
+            <ComboBox x:Name="SmartDevice" HorizontalAlignment="Stretch" PlaceholderText="Selecionar dispositivo">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="hw:BlockDevice">
+                  <TextBlock Text="{Binding Title}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button x:Name="SmartReadButton" Content="CONSULTAR SMART" Classes="outline" Click="ReadSmart" />
+            <TextBlock x:Name="SmartResultText" Classes="sub" />
+            <TextBlock Text="SISTEMAS DE ARQUIVOS MONTADOS" Classes="label" />
+            <TextBlock Text="Espaço disponível ao usuário pode diferir do livre total. Montagens podem compartilhar a mesma capacidade; os valores não são somados. Rede e tipos não reconhecidos aparecem sem consulta automática de espaço." Classes="sub" />
+            <ItemsControl x:Name="MountEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:MountedFileSystem">
+                  <StackPanel Margin="0,8" Spacing="4">
+                    <TextBlock Text="{Binding MountPoint}" Classes="label" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Details}" Classes="sub" />
+                    <TextBlock Text="{Binding Capacity}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Notice}" Classes="sub" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock x:Name="StorageNoticesText" Classes="sub" />
+            <TextBlock Text="Exporta os dados já coletados e a última consulta SMART, com suas datas. Inclui caminhos e origens das montagens." Classes="sub" />
+            <WrapPanel>
+              <Button x:Name="StorageHtmlButton" Content="EXPORTAR ARMAZENAMENTO HTML" Classes="outline" Click="ExportStorageHtml" Margin="0,0,8,8" />
+              <Button x:Name="StorageJsonButton" Content="EXPORTAR ARMAZENAMENTO JSON" Classes="outline" Click="ExportStorageJson" Margin="0,0,0,8" />
+            </WrapPanel>
+            <TextBlock x:Name="StorageExportStatusText" Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="SENSORES" Classes="label" />
+            <TextBox x:Name="SensorSearch" Watermark="Filtrar por componente ou sensor" TextChanged="FilterSensors" />
+            <TextBlock x:Name="SensorCountText" Classes="sub" />
+            <ItemsControl x:Name="SensorEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:SensorReading">
+                  <Grid ColumnDefinitions="*,150" Margin="0,7">
+                    <StackPanel Spacing="3">
+                      <TextBlock Text="{Binding Hardware}" Classes="label" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Error}" Classes="sub" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding DisplayValue}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock x:Name="TelemetryNoticesText" Classes="sub" />
+            <TextBlock Text="Sensores dependem do hardware e dos drivers. Tensões hwmon são leituras brutas; calibração da placa-mãe ainda não é aplicada." Classes="sub" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+    <ScrollViewer x:Name="BenchPage" IsVisible="False" Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="32,28" Spacing="20">
+        <StackPanel Spacing="6">
+          <TextBlock Text="RESET BENCH" Classes="h1" />
+          <TextBlock Text="Renderização, simulação de jogo e desempenho da memória." Classes="sub" />
+          <TextBlock x:Name="MachineText" Classes="sub" />
+        </StackPanel>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="INTERRUPÇÃO POR TEMPERATURA DA CPU" Classes="label" />
+            <CheckBox x:Name="ThermalEnabled" Content="Monitorar durante os benchmarks" IsChecked="True" />
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="Limite (°C)" VerticalAlignment="Center" />
+              <NumericUpDown x:Name="ThermalLimit" Minimum="60" Maximum="100" Value="90" Increment="1" Width="120" FormatString="0" />
+            </StackPanel>
+            <TextBlock x:Name="ThermalStateText" Text="Aguardando leitura da CPU…" Classes="sub" />
+            <Button x:Name="SaveSettingsButton" Content="SALVAR CONFIGURAÇÃO" Classes="outline" Click="SavePreferences" />
+            <TextBlock Text="Com monitoramento ativo, é necessária uma leitura recente abaixo do limite para iniciar. O teste é cancelado ao atingir o limite, ficar sem sensor ou completar 5 s sem atualização. A interrupção é cooperativa e depende da resposta dos sensores." Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="14">
+            <TextBlock Text="CPU · PATH TRACING" Classes="label" />
+            <TextBlock Text="Uma cena, todos os detalhes" Classes="big" />
+            <TextBlock Text="960 × 540 · 1024 amostras por pixel. O teste termina ao completar a imagem; a duração depende da CPU." Classes="sub" />
+            <Image x:Name="RenderImage" Height="250" Stretch="Uniform" />
+            <WrapPanel>
+              <Button x:Name="SingleButton" Content="1 THREAD" Classes="outline" Click="RunSingle" Margin="0,0,8,8" />
+              <Button x:Name="MultiButton" Content="TODAS AS THREADS" Classes="primary" Click="RunMulti" Margin="0,0,0,8" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="CPU · SIMULAÇÃO DE JOGO" Classes="label" />
+            <TextBlock Text="30 mil unidades em batalha" Classes="big" />
+            <TextBlock Text="Física, colisões e inteligência artificial. Aquecimento de 2 s seguido de 10 s de medição." Classes="sub" />
+            <Button x:Name="SimButton" Content="INICIAR SIMULAÇÃO" Classes="outline" Click="RunSimulation" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="MEMÓRIA RAM" Classes="label" />
+            <TextBlock Text="Latência e largura de banda" Classes="big" />
+            <TextBlock Text="A latência usa cerca de 272 MiB; o teste de banda usa cerca de 2 GiB de RAM. Execute um teste por vez, com memória disponível." Classes="sub" />
+            <WrapPanel>
+              <Button x:Name="LatencyButton" Content="LATÊNCIA" Classes="outline" Click="RunLatency" Margin="0,0,8,8" />
+              <Button x:Name="BandwidthButton" Content="BANDA" Classes="outline" Click="RunBandwidth" Margin="0,0,0,8" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock x:Name="StatusText" Text="Pronto para iniciar." TextWrapping="Wrap" />
+            <ProgressBar x:Name="RunProgress" Minimum="0" Maximum="100" />
+            <Button x:Name="CancelButton" Content="CANCELAR" Classes="outline" IsEnabled="False" Click="CancelRun" />
+            <TextBlock Text="REGISTRO DESTA SESSÃO" Classes="label" />
+            <TextBox x:Name="ResultsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="HISTÓRICO · ÚLTIMAS 200 EXECUÇÕES" Classes="label" />
+            <TextBlock Text="Configuração salva pelo botão acima ou ao iniciar um teste. Resultados e interrupções são gravados ao terminar." Classes="sub" />
+            <TextBlock x:Name="PersistenceStatusText" Classes="sub" />
+            <Button x:Name="RetrySaveButton" Content="SALVAR PENDÊNCIAS / ATUALIZAR" Classes="outline" Click="RetryPersistence" />
+            <WrapPanel>
+              <Button x:Name="ExportHtmlButton" Content="EXPORTAR HTML" Classes="outline" Click="ExportHtml" Margin="0,0,8,8" />
+              <Button x:Name="ExportJsonButton" Content="EXPORTAR JSON" Classes="outline" Click="ExportJson" Margin="0,0,0,8" />
+            </WrapPanel>
+            <TextBlock Text="Exporta o histórico disponível, incluindo contexto do sistema e registros pendentes. Escolha onde salvar o arquivo." Classes="sub" />
+            <TextBlock x:Name="ExportStatusText" Classes="sub" />
+            <TextBox x:Name="HistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140" MaxHeight="360" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>

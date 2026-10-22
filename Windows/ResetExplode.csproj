@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationIcon>..\Assets\app.ico</ApplicationIcon>
     <AssemblyName>ResetExplode</AssemblyName>
     <Product>RESET EXPLODE</Product>
     <Version>0.16.0</Version>
@@ -17,10 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\logo.png" />
-    <Resource Include="Assets\app.ico" />
-    <Resource Include="Assets\logo-badge.png" />
-    <Resource Include="Assets\logo-dark.png" />
+    <Compile Include="../Shared/Benchmarks/*.cs" Link="%(Filename)%(Extension)" />
+    <Resource Include="..\Assets\logo.png" Link="Assets\logo.png" />
+    <Resource Include="..\Assets\app.ico" Link="Assets\app.ico" />
+    <Resource Include="..\Assets\logo-badge.png" Link="Assets\logo-badge.png" />
+    <Resource Include="..\Assets\logo-dark.png" Link="Assets\logo-dark.png" />
   </ItemGroup>
 
   <!-- Drivers seriais oficiais embutidos (RESET MAKER): cada pasta Drivers\<chip> vira recurso e é extraída na hora de instalar.
