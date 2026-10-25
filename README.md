@@ -26,7 +26,7 @@ Para validar apenas os projetos Core, Hardware e SmokeTests sem rede:
 bash Linux/validate.sh --offline-net8
 ```
 
-A suíte passa em .NET 8, incluindo relatórios, persistência, telemetria, armazenamento, alimentação, Maker e cancelamento de benchmarks. O modo offline não compila a interface Avalonia. Build/execução gráfica e validação dos dispositivos reais continuam pendentes; veja o [estado detalhado](Linux/README.md).
+A suíte passa em .NET 8, incluindo relatórios, persistência, telemetria, armazenamento, alimentação, Maker e cancelamento de benchmarks. O modo offline não compila a interface Avalonia. Build Avalonia aprovado em 23/10/2026. Roteiro gráfico aprovado pelo usuário em 24/10/2026, incluindo exportações, cancelamento de benchmarks, pré-checagem térmica e fechamento durante execução. Usuário também aprovou GPU/NVML, SMART com autorização administrativa, instância única e inventário de rede com IPv4/IPv6, gateways e DNS. Maker com dispositivo conectado continua pendente por falta de hardware; veja o [estado detalhado](Linux/README.md).
 
 No Windows, o projeto original agora está em `Windows/ResetExplode.csproj`; use `dotnet run --project Windows/ResetExplode.csproj` ou `Windows/publicar.bat` para publicação. A reorganização ajusta caminhos e recursos, sem modificar os algoritmos Windows. Build Windows não validado neste ambiente Linux.
 

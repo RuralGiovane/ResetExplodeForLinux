@@ -51,6 +51,36 @@
         </Border>
         <Border Classes="card">
           <StackPanel Spacing="12">
+            <TextBlock Text="REDE · INTERFACES" Classes="label" />
+            <TextBlock Text="Endereços, gateways, estado e contadores das interfaces locais. Atualize para acompanhar mudanças." Classes="sub" />
+            <Button x:Name="RefreshNetworkButton" Content="ATUALIZAR REDE" Classes="outline" Click="RefreshNetwork" />
+            <TextBlock x:Name="NetworkStatusText" Text="Aguardando inventário…" Classes="sub" />
+            <TextBlock Text="DNS · CONFIGURAÇÃO LOCAL" Classes="label" />
+            <TextBlock x:Name="NetworkDnsText" Text="Aguardando leitura…" TextWrapping="Wrap" />
+            <ItemsControl x:Name="NetworkEntries">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="hw:NetworkInterfaceEntry">
+                  <StackPanel Margin="0,10" Spacing="5">
+                    <TextBlock Text="{Binding Name}" Classes="label" />
+                    <ItemsControl ItemsSource="{Binding Metrics}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="hw:SystemEntry">
+                          <Grid ColumnDefinitions="240,*" Margin="0,3">
+                            <TextBlock Text="{Binding Name}" Classes="sub" />
+                            <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock x:Name="NetworkNoticesText" Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
             <TextBlock Text="MAKER · PORTAS SERIAIS" Classes="label" />
             <TextBlock Text="Portas USB seriais observadas no sistema. Atualize após conectar ou remover um dispositivo." Classes="sub" />
             <Button x:Name="RefreshSerialButton" Content="ATUALIZAR PORTAS" Classes="outline" Click="RefreshSerial" />

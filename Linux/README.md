@@ -2,11 +2,13 @@
 
 Fundação Avalonia e telemetria inicial da migração do projeto Windows v0.16. O repositório é o fork `ResetExplodeForLinux`; o produto, assembly e namespace continuam `ResetExplode`.
 
-## Validação atual — 22/10/2026
+## Validação atual — 24/10/2026
 
-Nesta continuação, SDK 8.0.132 e runtime 8.0.32 estão disponíveis. Os projetos originais Core, Hardware e SmokeTests compilaram com zero avisos/erros, preservando suas referências entre assemblies, e toda a suíte passou em .NET 8. A coleta real confirmou carga/temperatura da CPU, hwmon e cpufreq; NVML continua falhando na inicialização (código 9).
+Builds Avalonia/Core/Hardware/SmokeTests com dependências locais (`--no-restore`) aprovados em .NET 8, zero avisos/erros; suíte completa aprovada. Acesso ao NuGet e à sessão gráfica permanece limitado no ambiente do agente.
 
-O build Avalonia foi tentado e a restauração retornou NU1301 por indisponibilidade do NuGet. Interface, diálogos, SMART com processo real e benchmarks completos permanecem pendentes. Nenhuma correção de lógica foi necessária nos cenários executados. A validação suplementar anterior em .NET 10 está preservada no registro de alterações.
+Usuário aprovou o roteiro gráfico básico, cancelamento/proteção térmica/fechamento de benchmarks, GPU/NVML, fluxo SMART administrativo completo e instância única. Maker conectado permanece pendente por falta de dispositivo. Build Windows e metodologia dos benchmarks completos continuam pendentes.
+
+Inventário local de rede aprovado pelo usuário. Endereços IPv4/IPv6, gateways e DNS local adicionados; testes simulados aprovados. Coleta real de DNS e contadores funcionou, mas endereços/gateways ficaram indisponíveis no ambiente do agente (netlink bloqueado). Endereços/gateways reais e apresentação/atualização de todos os novos campos aprovados pelo usuário na sessão gráfica. Os estados descritos nas seções históricas abaixo podem anteceder essas confirmações.
 
 Na raiz do fork, com SDK/runtime .NET 8 e acesso aos pacotes:
 
@@ -27,6 +29,8 @@ O modo anterior `bash Linux/validate.sh --offline-net10` continua disponível pa
 A suíte exercita renderização curta com cancelamento e simulação; não executa automaticamente render completo, banda RAM de 2 GiB, SMART real ou aquecimento para testar limites térmicos.
 
 Em ambientes com diretórios de usuário protegidos, os caches podem ser direcionados a uma pasta temporária via `DOTNET_CLI_HOME`, `NUGET_PACKAGES` e `XDG_RUNTIME_DIR`, sem modificar as configurações do usuário.
+
+Roteiros aprovados: [validação gráfica](../docs/VALIDACAO_GRAFICA.md) e [validação de hardware](../docs/VALIDACAO_HARDWARE.md). São cópias versionadas das checklists mantidas no diretório de trabalho. O acesso à sessão gráfica e ao netlink segue restrito no ambiente do agente; as confirmações reais foram realizadas pelo usuário.
 
 ## Executar
 
@@ -210,7 +214,7 @@ Também fazem parte de `--inventory-only` e do conjunto padrão. Referências: [
 
 ## Consulta SMART manual
 
-No cartão de armazenamento, selecione um dispositivo inteiro e use CONSULTAR SMART. A consulta executa `smartctl --json=c -a /dev/<nome>` sem shell, com argumentos separados, sem sudo/pkexec e sem iniciar autotestes ou alterar configurações. Exige smartmontools no PATH e acesso ao dispositivo; pode ativar um disco em repouso. Dispositivos virtuais ou adaptadores sem suporte podem retornar dados indisponíveis.
+No cartão de armazenamento, selecione um dispositivo inteiro e use CONSULTAR SMART. Antes de consultar, um aviso explica a permissão administrativa para o dispositivo selecionado, com Cancelar e Prosseguir. Cancelar ou fechar o aviso não executa a consulta. Prosseguir solicita autorização via polkit; a senha é tratada pelo sistema. Apenas a consulta é elevada, mantendo a interface no usuário normal. Executa `pkexec --disable-internal-agent /usr/bin/timeout --kill-after=2s 15s <smartctl> --json=c -a /dev/<nome>` sem shell e com argumentos separados. Exige smartmontools em um diretório padrão do sistema, `/usr/bin/pkexec`, `/usr/bin/timeout` e agente gráfico polkit ativo. Não inicia autotestes nem altera configurações; pode ativar um disco em repouso. Dispositivos virtuais ou adaptadores sem suporte podem retornar dados indisponíveis.
 
 A leitura mostra temperatura, horas ligadas, ciclos e métricas NVMe quando presentes. Distingue aprovação da avaliação SMART, alerta reportado, registros/contadores de atenção, leitura incompleta e ausência de avaliação. Bits de falha de acesso/comando não são tratados como aprovação; bits de histórico de erros são exibidos separadamente de falha atual. A aprovação não garante ausência de defeitos. Não aplica os limiares genéricos de temperatura/desgaste do Windows a dispositivos Linux.
 
@@ -232,7 +236,7 @@ Após compilar os testes, execute explicitamente uma consulta ao dispositivo esc
 dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --live-smart nvme0n1
 ```
 
-Informe somente o nome, sem `/dev/`; o comando aceita exatamente uma opção e um dispositivo. Usa o mesmo leitor da interface, com prazo de 15 segundos, sem elevação, autotestes ou alteração de parâmetros. Pode acordar um disco em repouso. Ctrl+C solicita cancelamento. Mostra o estado, métricas e avisos tratados; não imprime JSON bruto nem stderr do smartctl. Esse modo não faz parte da suíte automática.
+Informe somente o nome, sem `/dev/`; o comando aceita exatamente uma opção e um dispositivo. Usa o mesmo parser da interface, com prazo de 15 segundos, sem elevação, autotestes ou alteração de parâmetros. A opção de terminal mantém a consulta sem privilégios; somente o fluxo confirmado da interface usa polkit. Pode acordar um disco em repouso. Ctrl+C solicita cancelamento. Mostra o estado, métricas e avisos tratados; não imprime JSON bruto nem stderr do smartctl. Esse modo não faz parte da suíte automática.
 
 Código de saída 0 significa que um relatório foi produzido, inclusive quando informa indisponibilidade; não significa disco saudável. Argumentos inválidos retornam 2 e cancelamento por Ctrl+C retorna 130. A falha de abertura é descrita pelo relatório sem presumir se a causa foi permissão, dispositivo ausente ou suporte.
 
@@ -329,4 +333,47 @@ O [mapa de pastas](../docs/ESTRUTURA.md) explica a separação entre `Windows/`,
 
 ## Próximas etapas
 
-Validar build, testes e execução gráfica, incluindo o fluxo térmico e NVML em GPU compatível; depois continuar a migração das páginas. Perfis e credenciais da configuração Windows, disco sem cache, GPU/Vulkan, overlay, atalhos globais e instância única ainda não foram migrados.
+Validar build, testes e execução gráfica, incluindo o fluxo térmico e NVML em GPU compatível; depois continuar a migração das páginas. Perfis e credenciais da configuração Windows, disco sem cache, GPU/Vulkan, overlay e atalhos globais ainda não foram migrados. Instância única implementada e aprovada graficamente pelo usuário.
+
+### Autorização da consulta SMART
+
+A interface aguarda até dois minutos pelo fluxo de autorização/consulta; após autorização, timeout limita a consulta a 15 segundos, com tentativa de encerramento forçado após mais dois segundos. Ao fechar o app, o cancelamento solicita encerramento; processos já elevados podem depender desse limite para terminar. I/O não interrompível pelo kernel não tem garantia de encerramento imediato. Recusa/cancelamento da autorização e ausência do agente polkit são apresentados sem interpretar esses resultados como saúde do disco. O aviso do sistema pode identificar `timeout` como programa autorizado, pois ele limita o processo smartctl elevado.
+
+Referência: [pkexec / polkit](https://www.freedesktop.org/software/polkit/docs/latest/pkexec.1.html).
+
+## Instância única
+
+Uma abertura adicional com o mesmo usuário e diretório de estado solicita ativação da janela existente e encerra antes de iniciar Avalonia ou coletores. A janela minimizada é restaurada; diálogos próprios em andamento recebem o pedido de foco. Durante o encerramento, não há reativação. O foco efetivo depende do gerenciador de janelas/compositor; a solicitação não garante que o desktop permita trazer a janela à frente.
+
+`Core/Lifecycle/SingleInstance.cs` mantém um arquivo bloqueado em uma subpasta privada do estado XDG. Pedidos vazios de ativação, identificados por GUID, são verificados a cada 200 ms e confirmados ao serem encaminhados à UI. A segunda instância espera até três segundos pela confirmação; se não houver resposta, informa a limitação e não abre outra janela. Nenhum comando, argumento ou dado de hardware é transmitido. Arquivos abandonados de pedidos/confirmações expiram após um minuto. O arquivo de lock permanece, mas o bloqueio é liberado ao fechar o processo, inclusive após encerramento abrupto. Alterar o diretório XDG de estado isola a instância.
+
+```bash
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --instance-only
+```
+
+Testes entre processos cobrem exclusão, notificações repetidas, identidades independentes, fechamento normal e recuperação após encerramento abrupto. Ativação, restauração, interação com aviso SMART/benchmark e reabertura aprovadas pelo usuário na sessão gráfica. Referência de UI: [Window.Activate](https://api-docs.avaloniaui.net/docs/M_Avalonia_Controls_WindowBase_Activate).
+
+## Rede: inventário local
+
+O cartão REDE · INTERFACES na página Sistema e sensores mostra cada interface observada em `/sys/class/net`, incluindo loopback e interfaces virtuais. Coleta inicial e botão ATUALIZAR REDE rodam fora da UI, sem sobreposição; o fechamento solicita cancelamento e aguarda a coleta.
+
+Apresenta estado operacional, carrier, MTU, velocidade reportada do link, duplex e contadores de bytes/pacotes/erros/descartes RX/TX. Contadores preservam inteiros sem sinal de 64 bits e zeros válidos; dados ausentes/inválidos e sentinelas de velocidade ficam indisponíveis. A coleta é sequencial, não atômica, e a remoção de uma interface durante a leitura pode produzir campos indisponíveis. Cada atualização cria um snapshot independente.
+
+O inventário não confirma acesso à internet nem mede throughput. Contadores são acumulados e podem reiniciar; não se somam interfaces virtuais e físicas como tráfego total do computador. Nenhuma consulta externa, configuração de rede, elevação ou teste ativo é executado por esta etapa. Ping/jitter/perda, testes de download/upload e exportação de rede permanecem para etapas posteriores do módulo. Endereços/gateways/DNS estão descritos abaixo. A base Windows `NetworkTest.cs` foi revisada e preservada.
+
+```bash
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --network-only
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --live-network
+```
+
+Implementação: `Hardware/Network/LinuxNetworkCollector.cs` e `Views/MainWindow.Network.cs`. Testes simulados integram a suíte completa. Referências: [ABI de interfaces do kernel](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-net) e [contadores de rede](https://docs.kernel.org/networking/statistics.html).
+
+### Endereços, gateways e DNS local
+
+O mesmo botão ATUALIZAR REDE atualiza endereços IPv4/IPv6 unicast, prefixos e gateways reportados por `NetworkInterface.GetAllNetworkInterfaces()`/`GetIPProperties()`. A associação usa o nome exato da interface observada em sysfs; associação ausente ou ambígua fica indisponível. Escopo IPv6 (por exemplo `%7`) é preservado. Lista vazia (Nenhum informado) é distinta de falha da API (Indisponível). Não seleciona uma conexão principal nem promete representar todas as rotas/tabelas ou gateways de cada família suportados pelo sistema.
+
+DNS aparece separado das interfaces: são as entradas nameserver explícitas de `/etc/resolv.conf`, com suporte a IPv4/IPv6, comentários, deduplicação preservando ordem e aviso para entradas inválidas. Arquivo vazio é distinto de arquivo inacessível. Não inventa servidores padrão e não consulta os servidores. Endereços locais podem representar um resolvedor intermediário; configuração específica de VPN, DNS por domínio e resolutores próprios de aplicativos não são inferidos.
+
+Falha na enumeração de endereços preserva o inventário sysfs e DNS. Cada atualização cria novos dados; o fechamento continua cancelando e aguardando a tarefa. A coleta é sequencial e pode refletir mudanças de configuração durante a leitura. Testes de `NetworkConfigurationChecks` cobrem prefixos, IPv6 com escopo, associação de interfaces, falhas parciais, alterações e snapshots, parsing DNS e indisponibilidade; integram --network-only e a suíte completa.
+
+Referências: [propriedades IP das interfaces (.NET)](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties) e [resolv.conf](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).

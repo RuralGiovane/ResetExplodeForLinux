@@ -2,11 +2,45 @@
 
 Este documento foi elaborado para guiar desenvolvedores e sistemas de inteligência artificial na migração completa do software **RESET EXPLODE** do ambiente Windows (.NET 8 + WPF + DirectX) para o ecossistema Linux nativo (.NET 8 + Avalonia UI + Vulkan).
 
+### Estado final da entrega — 24/10/2026
+
+Usuário aprovou todos os itens de endereços IPv4/IPv6, gateways, DNS, atualização, legibilidade e fechamento/reabertura. Somam-se aos aceites anteriores de SMART administrativo, instância única, inventário de rede, GPU/NVML e roteiro gráfico básico. Builds Avalonia/SmokeTests e suíte completa passaram na última alteração de código; esta finalização atualiza somente documentação.
+
+Checklists preservadas no diretório de trabalho e copiadas para `docs/VALIDACAO_GRAFICA.md` e `docs/VALIDACAO_HARDWARE.md` para acompanhar o commit. Entrega preparada para commit manual pelo usuário, como na entrega anterior; sem staging ou commit pelo agente. Permanecem pendentes Maker conectado, metodologia de benchmarks completos, build Windows e demais módulos do porte. Próxima frente funcional de rede: testes ativos de latência, jitter/perda e, posteriormente, throughput/exportação.
+
+### Continuação — 24/10/2026: inventário aprovado e endereçamento de rede
+
+Usuário aprovou o inventário de rede e pediu uma próxima alteração antes da etapa de commits. Adicionados IPv4/IPv6 com prefixos/escopo e gateways reportados pela API local, associados pelo nome da interface; DNS explícito de resolv.conf apresentado separadamente. Ausência e indisponibilidade são distintas, e falhas da API não derrubam sysfs/DNS. Sem testes ativos ou mudanças na configuração.
+
+Builds Avalonia/SmokeTests e suíte completa aprovados. DNS e contadores reais lidos; netlink bloqueado no ambiente do agente (`ip -brief address` retorna Operation not permitted), portanto endereços/gateways reais e apresentação dos novos campos aguardam validação do usuário. Checklist adicionada ao roteiro gráfico. Após essa validação, seguir para commits conforme combinado; nenhum commit ou staging realizado nesta etapa.
+
+### Continuação — 24/10/2026: instância única aprovada e inventário de rede
+
+Usuário confirmou todos os cenários de instância única: segunda abertura, restauração, aviso SMART, benchmark em andamento e reabertura após fechar. Essa pendência gráfica está concluída.
+
+Iniciado o porte do módulo de rede com inventário local somente de leitura: interfaces, estado/link, MTU, velocidade reportada, duplex e contadores RX/TX via sysfs. Cartão na página Sistema e sensores, atualização manual e cancelamento/espera no fechamento. Build Avalonia e suíte completa aprovados; coleta real encontrou oito interfaces. Novo cartão ainda requer validação gráfica. IP/gateway/DNS, testes ativos de latência/velocidade e exportação permanecem etapas futuras; o módulo NetworkTest completo não está migrado.
+
+### Continuação — 24/10/2026: SMART aprovado e instância única
+
+Usuário aprovou o fluxo SMART administrativo completo, incluindo consentimento, autenticação, cancelamento, dados reais, exportação e fechamento. GPU/NVML validada na sessão do usuário. Maker com dispositivo conectado permanece pendente por indisponibilidade de hardware; isso não impede frentes independentes do porte.
+
+Próxima pendência de ciclo de vida implementada: instância única por usuário/diretório de estado, com pedido de ativação/restauração da janela existente. Controle e notificações via arquivos privados XDG; sem dependência de sockets ou privilégios. Testes entre processos aprovados; restauração/foco na sessão gráfica ainda pendentes. Este estado prevalece sobre referências históricas abaixo.
+
+### Continuação — 24/10/2026: roteiro gráfico aprovado
+
+Esta atualização prevalece sobre as pendências gráficas históricas abaixo. Usuário concluiu o roteiro de abertura, navegação, sensores, inventários, exportações, substituição de JSON, bloqueio de ações concorrentes e fechamento. Também confirmou cancelamento de benchmark sem pontuação parcial, bloqueio na pré-checagem térmica e fechamento durante execução. Build Avalonia e suíte aprovados em 23/10; testes térmicos reexecutados com sucesso em 24/10.
+
+A validação do roteiro gráfico está concluída. Próxima frente: validar integrações com hardware disponível (serial, SMART e NVML) e continuar módulos pendentes do porte. Metodologia dos benchmarks completos e build Windows continuam pendentes; este aceite não conclui toda a migração.
+
 ### Organização atual e último resultado
 
 O projeto está organizado em `Windows/` (referência WPF), `Shared/Benchmarks/` (algoritmos comuns), `Linux/` (porte) e `docs/` (documentação versionada). Veja [ESTRUTURA.md](ESTRUTURA.md) para caminhos atuais; descrições históricas abaixo podem citar a organização anterior. Os pontos de entrada Linux continuam em `Linux/ResetExplode.csproj` e `Linux/validate.sh`.
 
 Exportação Maker HTML/JSON concluída com snapshot independente de portas, USB, aliases, grupos, datas e falhas. Suíte completa aprovada antes e depois da reorganização em .NET 8, com zero avisos/erros. Verificados estaticamente XML, eventos, referências e recursos; 65 fontes Windows/compartilhados movidos preservam o conteúdo original. Builds Avalonia/WPF, diálogos e hardware serial conectado permanecem pendentes. A prioridade seguinte é validar os projetos gráficos nos ambientes adequados; não considerar a migração completa.
+
+### Continuação — 23/10/2026: compilação Avalonia aprovada
+
+Esta atualização prevalece sobre as pendências de compilação Linux descritas abaixo: `bash Linux/validate.sh` compilou Avalonia e os projetos de suporte com zero avisos/erros e aprovou a suíte completa em .NET 8. O modo offline também passou. Dependências disponíveis localmente, embora a consulta ao NuGet continue falhando por DNS. A execução gráfica terminou com `XOpenDisplay failed`; próxima etapa é validar apresentação, diálogos e fechamento em uma sessão gráfica acessível. Build WPF e dispositivos reais continuam pendentes.
 
 ### Estado verificado e base da migração — 22/10/2026
 

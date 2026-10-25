@@ -43,8 +43,17 @@ public partial class MainWindow : Window
         _thermalStatusTimer.Start();
         UpdateThermalStatus();
         Closing += OnClosing;
-        Opened += async (_, _) => { StartTelemetry(); StartPowerMonitoring(); await Task.WhenAll(StartStorageRefresh(), StartSerialRefresh()); };
-        Closed += (_, _) => { StopTelemetry(); _storageCancellation.Dispose(); _serialCancellation.Dispose(); _powerCancellation.Dispose(); _timer.Stop(); _thermalStatusTimer.Stop(); RenderImage.Source = null; _bitmap.Dispose(); };
+        Opened += async (_, _) => { StartTelemetry(); StartPowerMonitoring(); await Task.WhenAll(StartStorageRefresh(), StartSerialRefresh(), StartNetworkRefresh()); };
+        Closed += (_, _) => { StopTelemetry(); _storageCancellation.Dispose(); _serialCancellation.Dispose(); _networkCancellation.Dispose(); _powerCancellation.Dispose(); _timer.Stop(); _thermalStatusTimer.Stop(); RenderImage.Source = null; _bitmap.Dispose(); };
+    }
+
+    internal void ActivateFromAnotherInstance()
+    {
+        if (_closeWhenStopped) return;
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        // Respeitar diálogos modais em andamento.
+        var dialog = OwnedWindows.FirstOrDefault(window => window.IsVisible);
+        (dialog ?? this).Activate();
     }
 
     private async void RunSingle(object? sender, RoutedEventArgs e) => await RunRenderAsync(1);
@@ -257,11 +266,13 @@ public partial class MainWindow : Window
         StopTelemetry();
         _storageCancellation.Cancel();
         _serialCancellation.Cancel();
+        _networkCancellation.Cancel();
         _powerCancellation.Cancel();
         await _powerLoop;
         await _powerWork;
         await _storageWork;
         await _serialWork;
+        await _networkWork;
         await _smartWork;
         // A UI continua processando os callbacks pendentes até a coleta liberar a NVML.
         await _telemetryTask;

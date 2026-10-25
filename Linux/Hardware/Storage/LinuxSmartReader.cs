@@ -14,16 +14,31 @@ public sealed class LinuxSmartReader
 {
     private readonly string _executable;
     private readonly TimeSpan _timeout;
+    private readonly string[] _prefix;
+    private readonly bool _privileged;
+
+    public static LinuxSmartReader CreatePrivileged()
+    {
+        string smartctl = new[] { "/usr/sbin/smartctl", "/usr/bin/smartctl", "/sbin/smartctl" }
+            .FirstOrDefault(File.Exists) ?? throw new InvalidOperationException("Instale smartmontools para consultar SMART.");
+        if (!File.Exists("/usr/bin/pkexec") || !File.Exists("/usr/bin/timeout"))
+            throw new InvalidOperationException("A consulta administrativa exige polkit (pkexec) e coreutils (timeout).");
+        // O timeout elevado pode encerrar a consulta mesmo sem privilégios no processo da UI.
+        return new("/usr/bin/pkexec", TimeSpan.FromMinutes(2),
+            ["--disable-internal-agent", "/usr/bin/timeout", "--kill-after=2s", "15s", smartctl], true);
+    }
 
     public LinuxSmartReader() : this("smartctl", TimeSpan.FromSeconds(15)) { }
 
-    internal LinuxSmartReader(string executable, TimeSpan timeout)
+    internal LinuxSmartReader(string executable, TimeSpan timeout, string[]? prefix = null, bool privileged = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executable);
         if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > uint.MaxValue - 1)
             throw new ArgumentOutOfRangeException(nameof(timeout));
         _executable = executable;
         _timeout = timeout;
+        _prefix = prefix ?? [];
+        _privileged = privileged;
     }
 
     public async Task<SmartReport> ReadAsync(string name, CancellationToken cancellation = default)
@@ -36,6 +51,7 @@ public sealed class LinuxSmartReader
         deadline.CancelAfter(_timeout);
         using var process = new Process { StartInfo = new ProcessStartInfo(_executable)
         { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true } };
+        foreach (string arg in _prefix) process.StartInfo.ArgumentList.Add(arg);
         foreach (string arg in new[] { "--json=c", "-a", device }) process.StartInfo.ArgumentList.Add(arg);
         Task<string>? stdout = null, stderr = null;
         try
@@ -46,6 +62,15 @@ public sealed class LinuxSmartReader
             await process.WaitForExitAsync(deadline.Token);
             string output = await stdout;
             await stderr; // Drenar sem expor saída bruta, que pode conter identificadores do dispositivo.
+            if (_privileged && string.IsNullOrWhiteSpace(output))
+            {
+                if (process.ExitCode == 126)
+                    return new(device, "CANCELADO", [], ["Autorização cancelada. Nenhuma avaliação SMART obtida."]);
+                if (process.ExitCode == 127)
+                    return new(device, "INDISPONÍVEL", [], ["Autorização não obtida ou comando indisponível. Verifique o agente de autenticação polkit da sessão."]);
+                if (process.ExitCode is 124 or 137)
+                    return new(device, "INDISPONÍVEL", [], ["A consulta administrativa excedeu o prazo e foi encerrada."]);
+            }
             return Parse(device, output, process.ExitCode);
         }
         catch (OperationCanceledException)

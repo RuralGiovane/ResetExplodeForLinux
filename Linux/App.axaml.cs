@@ -11,7 +11,10 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
             desktop.MainWindow = new MainWindow();
+            desktop.MainWindow.Opened += (_, _) => Program.ActivateExistingWindow();
+        }
         base.OnFrameworkInitializationCompleted();
     }
 }

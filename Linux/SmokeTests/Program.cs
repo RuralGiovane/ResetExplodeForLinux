@@ -1,6 +1,36 @@
 using ResetExplode;
 using ResetExplode.Hardware;
 
+if (args.Length == 2 && args[0] == "--instance-probe")
+{
+    Environment.ExitCode = SingleInstanceChecks.Probe(args[1]);
+    return;
+}
+if (args.Contains("--instance-only"))
+{
+    await SingleInstanceChecks.RunAsync();
+    return;
+}
+
+if (args.Contains("--network-only"))
+{
+    NetworkChecks.Run();
+    NetworkConfigurationChecks.Run();
+    return;
+}
+if (args.Contains("--live-network"))
+{
+    var inventory = new LinuxNetworkCollector(new LinuxFiles()).Collect();
+    foreach (var item in inventory.Interfaces)
+    {
+        Console.WriteLine(item.Name);
+        foreach (var metric in item.Metrics) Console.WriteLine($"  {metric.Name}: {metric.Value}");
+    }
+    Console.WriteLine($"DNS local: {inventory.Resolver.Description}");
+    foreach (var notice in inventory.Notices) Console.WriteLine(notice);
+    return;
+}
+
 // Diagnóstico opt-in: nunca consultar discos na suíte padrão.
 if (args.Contains("--live-smart"))
 {
@@ -108,6 +138,9 @@ if (args.Contains("--live-telemetry"))
     return;
 }
 
+NetworkChecks.Run();
+NetworkConfigurationChecks.Run();
+await SingleInstanceChecks.RunAsync();
 await SmartChecks.RunAsync();
 await SmartProcessChecks.RunAsync();
 PersistenceChecks.Run();

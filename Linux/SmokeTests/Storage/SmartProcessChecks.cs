@@ -42,6 +42,23 @@ internal static class SmartProcessChecks
             Check((await new LinuxSmartReader(Path.Combine(directory, "ausente"), TimeSpan.FromSeconds(1)).ReadAsync("test")).Status == "INDISPONÍVEL",
                 "Executável ausente não foi tratado.");
 
+            // Simula o lançador administrativo, sem solicitar privilégios reais.
+            var privileged = new LinuxSmartReader(executable, TimeSpan.FromSeconds(5),
+                ["--disable-internal-agent", "/usr/bin/timeout", "--kill-after=2s", "15s", "/usr/bin/smartctl"], true);
+            await SetScript("""
+                [ "$#" = 8 ] && [ "$1" = '--disable-internal-agent' ] && [ "$2" = '/usr/bin/timeout' ] && [ "$3" = '--kill-after=2s' ] && [ "$4" = '15s' ] && [ "$5" = '/usr/bin/smartctl' ] && [ "$6" = '--json=c' ] && [ "$7" = '-a' ] && [ "$8" = '/dev/test' ] || exit 1
+                printf '%s' '{"smart_status":{"passed":true}}'
+                """);
+            Check((await privileged.ReadAsync("test")).Status == "AVALIAÇÃO SMART APROVADA", "Argumentos administrativos incorretos.");
+            foreach (var (code, status) in new[] { (126, "CANCELADO"), (127, "INDISPONÍVEL"), (124, "INDISPONÍVEL"), (137, "INDISPONÍVEL") })
+            {
+                await SetScript($"exit {code}");
+                Check((await privileged.ReadAsync("test")).Status == status, "Falha de autorização/timeout interpretada como saúde SMART.");
+            }
+            // Um bitmask SMART válido pode coincidir com os códigos do lançador.
+            await SetScript("printf '%s' '{\"smart_status\":{\"passed\":false}}'\nexit 126");
+            Check((await privileged.ReadAsync("test")).Status == "ALERTA REPORTADO", "Resposta SMART confundida com cancelamento de autorização.");
+
             // Enche ambas as pipes em paralelo: uma leitura sequencial pode bloquear.
             foreach (string redirect in new[] { "", " >&2" })
             {

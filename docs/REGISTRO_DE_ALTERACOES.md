@@ -2,6 +2,96 @@
 
 Este arquivo acompanha a migração construída a partir do projeto Windows, agora no fork `ResetExplodeForLinux/` (anteriormente `ResetExplode/`). O nome da aplicação permanece `ResetExplode`. Para cada alteração, registrar data, arquivos afetados, o que mudou, motivo, validação e pendências. Distinguir trabalho planejado de funcionalidades implementadas e verificadas.
 
+## 2026-10-24 — Aceite final e preparação para commit manual
+
+Usuário marcou e confirmou toda a checklist de endereços IPv4/IPv6, gateways, DNS, atualização, legibilidade e fechamento/reabertura. Fluxo SMART administrativo, instância única, inventário de rede, GPU/NVML e cenários gráficos anteriores também aprovados. Maker com hardware conectado continua pendente por falta de dispositivo.
+
+Atualizados README principal/Linux e estado final do plano. Checklists do diretório de trabalho copiadas para docs/VALIDACAO_GRAFICA.md e docs/VALIDACAO_HARDWARE.md; originais permanecem disponíveis no diretório solicitado. Links atuais do README Linux apontam para as cópias versionadas. Notas históricas anteriores mantêm caminhos e pendências da época.
+
+Última alteração de código: builds Avalonia e SmokeTests com --no-restore aprovados, zero avisos/erros, suíte completa aprovada; usuário confirmou a interação real. Finalização apenas documental, com git diff --check aprovado e nenhuma alteração em Windows/Shared. Preparado commit manual conforme o formato da entrega anterior. Nenhum staging, commit ou push executado pelo agente.
+
+## 2026-10-24 — Inventário de rede aprovado e IPv4/IPv6, gateways e DNS
+
+Usuário confirmou o inventário de rede e indicou commits após a próxima alteração. Registrado aceite e implementada expansão do inventário; sem staging/commit nesta etapa.
+
+`Linux/Hardware/Network/LinuxNetworkAddresses.cs`: enumeração local por API .NET, endereços unicast IPv4/IPv6, prefixos e escopo, gateways reportados, campos indisponíveis quando não suportados. `LinuxResolverConfiguration.cs`: parser de nameserver em resolv.conf, preservação de ordem, deduplicação, IPv4/IPv6, comentários, distinção entre ausência e lista vazia, contagem de entradas inválidas. Não realiza consultas DNS.
+
+`LinuxNetworkCollector.cs`: associação exata por nome, rejeição de associação ambígua, isolamento de falhas da API, snapshot textual independente e DNS separado. `Views/MainWindow.Network.cs`/`MainWindow.axaml`: campos integrados ao cartão e atualização existente. `SmokeTests/Network/NetworkConfigurationChecks.cs`, `NetworkChecks.cs` e `Program.cs`: fontes simuladas isoladas, prefixos/escopo, múltiplos endereços, ausência versus falha, alteração/remoção, DNS inválido e snapshots; diagnóstico --live-network inclui DNS.
+
+Builds Avalonia e SmokeTests com --no-restore aprovados, zero avisos/erros; suíte completa e git diff --check aprovados. Coleta real preservou oito interfaces/contadores e leu DNS local. Endereços/gateways indisponíveis no ambiente; comando independente `ip -brief address` confirmou bloqueio netlink com Operation not permitted. Validação real dos novos campos e interação gráfica pendentes em `../../VALIDACAO_GRAFICA.md`. Gateways não representam todas as tabelas/rotas e DNS não determina configuração específica por aplicativo/VPN. Base Windows preservada.
+
+## 2026-10-24 — Instância única aprovada e inventário de rede
+
+Checklist de instância única marcada e confirmada pelo usuário, incluindo restauração, aviso SMART, benchmark em andamento e reabertura. Registrado o aceite em roteiro, README e plano.
+
+Iniciado módulo de rede previsto no porte de MainWindow.Net/NetworkTest. `Linux/Hardware/Network/LinuxNetworkCollector.cs` lê sysfs: interfaces, operstate/carrier, MTU, velocidade/duplex e oito contadores RX/TX. Zero e uint64 máximo preservados; ausências, negativos, overflow e sentinelas tratados como indisponíveis. Snapshots independentes, listas somente de leitura, cancelamento entre leituras e nenhuma inferência de conectividade/throughput.
+
+`Linux/Views/MainWindow.Network.cs`, `MainWindow.axaml` e `MainWindow.axaml.cs`: cartão integrado à página de sistema com coleta inicial/manual fora da UI, exclusão de atualizações sobrepostas, cancelamento e espera no fechamento. `Linux/SmokeTests/Network/NetworkChecks.cs` e `Program.cs`: fixtures com cultura pt-BR, estados, limites, remoção/reaparecimento e snapshot; modos --network-only/--live-network. Base Windows preservada.
+
+Builds Avalonia e SmokeTests com --no-restore aprovados, zero avisos/erros; suíte completa e git diff --check aprovados. Leitura real encontrou oito interfaces (Wi-Fi, Ethernet, loopback e bridges); estados e contadores retornados. Apresentação/atualização gráfica pendentes no roteiro externo `../../VALIDACAO_GRAFICA.md`. IP/gateway/DNS, testes ativos e exportação não implementados nesta etapa. Sem tráfego de teste, alteração de configuração ou privilégios.
+
+## 2026-10-24 — SMART aprovado pelo usuário e instância única Linux
+
+Usuário confirmou toda a checklist do novo fluxo SMART. Registrada a aprovação no roteiro externo: aviso/consentimento, autenticação, cancelamentos, dados reais, exportação e fechamento. GPU/NVML já aprovada; Maker conectado permanece pendente por falta de hardware.
+
+Implementada a pendência de instância única do plano. `Linux/Core/Lifecycle/SingleInstance.cs` mantém exclusão entre processos por arquivo privado bloqueado no estado XDG, com pedidos vazios de ativação identificados por GUID e confirmação de recebimento. Segunda abertura aguarda até três segundos, informa o resultado e encerra antes de inicializar Avalonia/coletores. O lock é mantido até o término da primeira instância, liberado também pelo sistema após encerramento abrupto; o arquivo não é apagado para preservar o inode compartilhado. Pedidos/confirmações abandonados são removidos após um minuto.
+
+`Linux/Program.cs`, `App.axaml.cs` e `Views/MainWindow.axaml.cs` integram ativação no dispatcher, pedidos durante inicialização, restauração de janela minimizada, foco em diálogo próprio e respeito ao encerramento. Falha de acesso ao estado impede abrir uma instância sem controle e é informada no terminal. Sem alterações na base Windows.
+
+`Linux/SmokeTests/Core/SingleInstanceChecks.cs` e `Program.cs` adicionam testes reais entre processos: exclusão, duas ativações consecutivas, identidades independentes, reabertura e recuperação após encerramento abrupto. Modo `--instance-only` e suíte completa aprovados. Builds Avalonia/Core/Hardware/SmokeTests com dependências locais (`--no-restore`) aprovados, zero avisos/erros; `git diff --check` aprovado. Documentados comportamento e limites no README e plano; nova checklist em `../../VALIDACAO_GRAFICA.md`.
+
+Ativação/restauração gráfica ainda requer confirmação do usuário. O gerenciador de janelas pode recusar foco. Instâncias com diretórios XDG de estado distintos são independentes. Confirmação do pedido indica encaminhamento à UI, não garantia de foco concedido pelo desktop.
+
+## 2026-10-24 — Confirmação e autorização administrativa para SMART
+
+Usuário confirmou leitura SMART com sudo no terminal e solicitou aviso prévio no app. `Linux/Views/MainWindow.Smart.cs` agora apresenta diálogo modal com dispositivo, finalidade da permissão, Cancelar e Prosseguir. Cancelar/Escape/fechar não inicia processo; apenas confirmar chama o leitor privilegiado. Seleção e botão permanecem bloqueados durante o fluxo e são liberados ao terminar.
+
+`Linux/Hardware/Storage/LinuxSmartReader.cs` adiciona modo administrativo explícito com pkexec, sem shell, argumentos separados e executáveis em caminhos de sistema. Autenticação fica com polkit, sem coletar senha no app. Timeout elevado limita a consulta a 15 segundos, seguido de encerramento forçado após dois segundos; prazo externo de dois minutos cobre autorização. Cancelamento/recusa sem JSON não é interpretado como bitmask SMART. CLI permanece sem elevação. Processo já elevado pode depender do timeout ao fechar; I/O de kernel não interrompível permanece uma limitação.
+
+`Linux/SmokeTests/Storage/SmartProcessChecks.cs` cobre argumentos do lançador, retorno bem-sucedido, cancelamento, recusa, timeout e preservação de bitmask SMART coincidente com código de autorização. Simulação sem privilégios reais. Builds Avalonia e SmokeTests com `--no-restore` aprovados, zero avisos/erros, e suíte completa aprovada. `validate.sh` com restauração falhou por acesso negado ao NuGet; dependências existentes permitiram validar tudo sem restauração. `git diff --check` aprovado. Fluxo gráfico/polkit real pendente; checklist atualizado em `../../VALIDACAO_HARDWARE.md`. Nenhuma política polkit, permissão de dispositivo ou instalação alterada.
+
+## 2026-10-24 — Causa de falha SMART identificada
+
+Usuário forneceu erro direto do smartctl para /dev/nvme0n1: Permission denied. Falha de abertura por permissão confirmada nessa tentativa; saúde do disco e leitura real pelo app continuam pendentes. Roteiro atualizado com consulta manual privilegiada limitada ao smartctl. Nenhuma elevação executada pelo agente ou alteração de permissões/código.
+
+## 2026-10-24 — Retorno da validação de hardware pelo usuário
+
+GPU NVIDIA reconhecida no terminal, métricas do coletor disponíveis e sensores atualizando no app: validação manual aprovada. Exportação Maker confirmada para o inventário disponível; testes com porta conectada pendentes porque o usuário não possui dispositivo. SMART retornou LEITURA INCOMPLETA por falha de abertura/identificação; causa ainda indeterminada, sem aprovação de leitura real, UI SMART ou exportação de métricas reais.
+
+Atualizado `../../VALIDACAO_HARDWARE.md`, preservando as anotações do usuário e acrescentando diagnóstico direto do smartctl para obter a causa específica. Código revisado confirma que a mensagem apresentada agrega falhas de abertura/identificação; não comprova falta de permissão. Sem alterações de código ou testes adicionais.
+
+## 2026-10-24 — Diagnóstico real de hardware e roteiro complementar
+
+Executados `--live-serial`, `--live-telemetry`, `--live-smart nvme0n1` no binário existente e `nvidia-smi -L`. CPU/hwmon/cpufreq retornaram dados reais; os testes simulados incluídos em live-telemetry passaram. Nenhuma porta serial observada. Disco presente em sysfs, ausente em /dev: SMART retornou LEITURA INCOMPLETA, sem avaliação válida. NVML falhou com código 9 e nvidia-smi também falhou; nenhum dispositivo /dev/nvidia disponível. Essas limitações não comprovam defeito de hardware ou driver na sessão normal do usuário.
+
+Criado `../../VALIDACAO_HARDWARE.md` no diretório de trabalho, com evidências e passos de terminal/UI para SMART, GPU e serial. Validação dessas integrações com dispositivos acessíveis permanece pendente. Sem alteração de código, instalação, elevação ou nova compilação.
+
+## 2026-10-24 — Roteiro gráfico concluído
+
+Usuário confirmou funcionamento dos três cenários restantes: cancelamento de benchmark com retorno da interface e histórico sem pontuação parcial; bloqueio pela pré-checagem térmica com motivo e interface utilizável; fechamento durante execução com cancelamento e encerramento. Todos os itens de `../../VALIDACAO_GRAFICA.md` estão aprovados por validação manual do usuário.
+
+Atualizados roteiro, estado do plano e README principal. Nenhum código alterado ou teste reexecutado nesta confirmação. Permanecem fora deste aceite hardware serial conectado, SMART real, NVML, metodologia dos benchmarks completos e build Windows. Próxima frente: validação das integrações com hardware disponível e continuidade dos módulos pendentes do porte.
+
+## 2026-10-24 — Validação gráfica básica confirmada pelo usuário
+
+Usuário aprovou abertura, navegação, sensores, inventários, exportações HTML/JSON, cancelamento do diálogo e fechamento em repouso/durante atualização. Confirmou também bloqueio de início de benchmarks e novas exportações durante exportação, além da substituição de JSON existente sem conteúdo residual. Navegação e atualização de dados durante exportação são permitidas.
+
+Atualizado `../../VALIDACAO_GRAFICA.md` (movido anteriormente para o diretório de trabalho a pedido do usuário), com resultados e passos para cancelamento, pré-checagem térmica e fechamento durante benchmark. Esses três cenários gráficos permanecem pendentes. O binário existente de SmokeTests executado com `--thermal-only` passou: limite, pré-checagem, perda/atraso de leitura, cancelamento e descarte parcial. Sem alterações no código ou nova compilação nesta etapa.
+
+## 2026-10-23 — Diagnóstico do acesso gráfico e roteiro
+
+Conexões aos sockets `/tmp/.X11-unix/X0`, `/tmp/.X11-unix/X1` e `/run/user/1000/wayland-1` retornaram errno 1 (`Operation not permitted`). O arquivo Xauthority configurado existe e é legível; `xdpyinfo -display :0` também não conseguiu abrir o display. O acesso gráfico está bloqueado neste ambiente. Não foi alterada a configuração da sessão nem o código da aplicação.
+
+Adicionado `docs/VALIDACAO_GRAFICA.md`, com comando de abertura, cenários de navegação, atualização, exportação/cancelamento/substituição de arquivos e fechamento. Todos permanecem explicitamente pendentes de execução na sessão gráfica. README Linux aponta para o roteiro.
+
+## 2026-10-23 — Compilação Avalonia validada
+
+**Resultado:** `bash Linux/validate.sh` concluiu os builds Avalonia e SmokeTests (incluindo Core/Hardware), com zero avisos/erros, e toda a suíte passou no SDK 8.0.132/runtime 8.0.32. `bash Linux/validate.sh --offline-net8` também passou. Nenhuma alteração de código foi necessária.
+
+A consulta a `https://api.nuget.org/v3/index.json` falhou por resolução de DNS, mas as dependências locais permitiram compilar. A tentativa de execução com `timeout 15s dotnet Linux/bin/Release/net8.0/ResetExplode.dll` terminou antes do prazo, com código 134 e exceção `XOpenDisplay failed` durante a inicialização Avalonia X11. DISPLAY estava configurado; isso não comprova acesso à sessão gráfica.
+
+Atualizados README raiz, README Linux e plano para distinguir compilação aprovada de interação gráfica pendente. Próximo passo: executar em sessão com display acessível e verificar telas, diálogos de exportação e fechamento. Build Windows, hardware conectado e benchmarks completos não foram executados nesta continuação.
+
 ## 2026-10-22 — Exportação Maker e organização do repositório
 
 **Resultado:** relatório Maker HTML/JSON implementado; projeto organizado por plataforma e responsabilidade. Suíte completa .NET 8 aprovada antes e depois das movimentações, com zero avisos/erros. Nenhum commit ou staging realizado; a entrega prepara os arquivos para commit manual pelo usuário.

@@ -15,9 +15,11 @@ Linux/
   Styles/                   tema Avalonia
   Core/
     Benchmarks/             coordenação, política térmica, RAM
+    Lifecycle/              instância única e pedidos de ativação
     Persistence/            configurações e histórico XDG
     Reports/                exportação de benchmarks
   Hardware/
+    Network/                inventário local de interfaces e contadores
     Common/                 acesso a procfs/sysfs e arquivos
     Models/                 modelos de telemetria
     Interop/                integração NVML
