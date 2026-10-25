@@ -12,7 +12,7 @@ public partial class MainWindow
 
     private async void StartDnsTest(object? sender, RoutedEventArgs e)
     {
-        if (_closeWhenStopped || !_dnsWork.IsCompleted || _latencyCancellation != null || _throughputCancellation != null || _cancellation != null || _exporting) return;
+        if (_closeWhenStopped || !_dnsWork.IsCompleted || _latencyCancellation != null || _throughputCancellation != null || _cancellation != null || _exporting || _cleaningMemory || _clearingHistory) return;
         _dnsWork = RunDnsTestAsync();
         await _dnsWork;
     }

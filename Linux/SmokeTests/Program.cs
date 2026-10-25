@@ -1,6 +1,49 @@
 using ResetExplode;
 using ResetExplode.Hardware;
 
+if (args.Length == 1 && args[0] == "--memory-cleanup-only")
+{
+    MemoryCleanupChecks.Run();
+    return;
+}
+if (args.Length == 1 && args[0] == "--stability-only")
+{
+    EdacChecks.Run();
+    return;
+}
+if (args.Length == 1 && args[0] == "--live-edac")
+{
+    var snapshot = new LinuxEdacCollector(new LinuxFiles()).Collect();
+    Console.WriteLine(snapshot.Status);
+    foreach (var controller in snapshot.Controllers) Console.WriteLine(controller.Description);
+    return;
+}
+
+if (args.Contains("--live-disk-smoke"))
+{
+    if (args.Length != 2 || args[0] != "--live-disk-smoke")
+    {
+        Console.Error.WriteLine("Uso: --live-disk-smoke <pasta existente absoluta>; cria arquivos temporários e executa I/O direto reduzido.");
+        Environment.ExitCode = 2; return;
+    }
+    try { DiskBenchmarkChecks.RunLive(args[1]); }
+    catch (NotSupportedException ex) { Console.Error.WriteLine(ex.Message); Environment.ExitCode = 3; }
+    catch (OperationCanceledException) { Console.Error.WriteLine("Diagnóstico cancelado."); Environment.ExitCode = 130; }
+    catch (Exception ex) { Console.Error.WriteLine(ex.GetBaseException().Message); Environment.ExitCode = 1; }
+    return;
+}
+if (args.Length == 1 && args[0] == "--disk-only")
+{
+    DiskBenchmarkChecks.Run();
+    return;
+}
+
+if (args.Length == 1 && args[0] == "--memory-only")
+{
+    MemoryChecks.Run();
+    return;
+}
+
 if (args.Length == 2 && args[0] == "--instance-probe")
 {
     Environment.ExitCode = SingleInstanceChecks.Probe(args[1]);
@@ -238,6 +281,10 @@ static async Task MustCancel(Func<Task> action)
 }
 
 var runner = new BenchmarkRunner();
+MemoryChecks.Run();
+MemoryCleanupChecks.Run();
+EdacChecks.Run();
+DiskBenchmarkChecks.Run();
 using (var cancelled = new CancellationTokenSource())
 {
     cancelled.Cancel();

@@ -53,7 +53,7 @@ public partial class MainWindow
 
     private async void StartLatencyTest(object? sender, RoutedEventArgs e)
     {
-        if (_throughputCancellation != null || _dnsCancellation != null || _closeWhenStopped || !_latencyWork.IsCompleted || _cancellation != null || _exporting) return;
+        if (_throughputCancellation != null || _dnsCancellation != null || _closeWhenStopped || !_latencyWork.IsCompleted || _cancellation != null || _exporting || _cleaningMemory || _clearingHistory) return;
         _latencyWork = RunLatencyTestAsync();
         await _latencyWork;
     }

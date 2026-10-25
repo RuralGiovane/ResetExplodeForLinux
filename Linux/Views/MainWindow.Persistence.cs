@@ -39,13 +39,13 @@ public partial class MainWindow
 
     private async void SavePreferences(object? sender, RoutedEventArgs e)
     {
-        if (_closeWhenStopped || _cancellation != null || _exporting) return;
+        if (_closeWhenStopped || _cancellation != null || _exporting || _cleaningMemory || _clearingHistory) return;
         await QueuePersistenceAsync(CurrentSettings(), forceSettings: true);
     }
 
     private async void RetryPersistence(object? sender, RoutedEventArgs e)
     {
-        if (_closeWhenStopped || _cancellation != null || _exporting) return;
+        if (_closeWhenStopped || _cancellation != null || _exporting || _cleaningMemory || _clearingHistory) return;
         await QueuePersistenceAsync(CurrentSettings(), forceSettings: true, reloadHistory: true);
     }
 

@@ -7,8 +7,8 @@ public sealed record MemoryResult(double LatencyNs, double ReadGBs, double CopyG
 /// <summary>Algoritmos de RAM extraídos de MemoryBench.cs da base Windows. I/O será migrado separadamente.</summary>
 public static class MemoryBench
 {
-    private const long LatencyBytes = 256L << 20;     // 256 MB: bem maior que qualquer cache L3
-    private const long BandwidthBytes = 1L << 30;     // 1 GB
+    private const long LatencyBytes = 256L << 20;     // 256 MiB: tamanho fixo; pode caber em caches de CPUs futuras
+    private const long BandwidthBytes = 1L << 30;     // 1 GiB
     // ------------------------------------------------------------------ RAM
 
     /// <summary>
@@ -23,22 +23,23 @@ public static class MemoryBench
         // Saltos de 64 bytes (linhas de cache diferentes) em ordem aleatória determinística.
         int lines = n / 8;
         var order = new int[lines];
-        for (int i = 0; i < lines; i++) order[i] = i;
+        for (int i = 0; i < lines; i++) { if ((i & 0xFFFF) == 0) ct.ThrowIfCancellationRequested(); order[i] = i; }
         var rng = new Random(42);
-        for (int i = lines - 1; i > 0; i--) { int j = rng.Next(i); (order[i], order[j]) = (order[j], order[i]); }
-        for (int i = 0; i < lines; i++) next[order[i] * 8] = order[(i + 1) % lines] * 8;
+        for (int i = lines - 1; i > 0; i--) { if ((i & 0xFFFF) == 0) ct.ThrowIfCancellationRequested(); int j = rng.Next(i); (order[i], order[j]) = (order[j], order[i]); }
+        for (int i = 0; i < lines; i++) { if ((i & 0xFFFF) == 0) ct.ThrowIfCancellationRequested(); next[order[i] * 8] = order[(i + 1) % lines] * 8; }
 
         long p = 0;
-        for (int i = 0; i < 200_000; i++) p = next[p]; // aquece TLB/páginas
+        for (int i = 0; i < 200_000; i++) { if ((i & 0xFFFF) == 0) ct.ThrowIfCancellationRequested(); p = next[p]; } // aquece TLB/páginas
         const int steps = 20_000_000;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < steps; i++)
         {
             p = next[p];
-            if ((i & 0xFFFFF) == 0) ct.ThrowIfCancellationRequested();
+            if ((i & 0xFFFF) == 0) ct.ThrowIfCancellationRequested();
         }
         double ns = sw.Elapsed.TotalMilliseconds * 1e6 / steps;
         GC.KeepAlive(p);
+        ct.ThrowIfCancellationRequested();
         return ns;
     }
 
@@ -50,34 +51,81 @@ public static class MemoryBench
         int n = (int)(BandwidthBytes / sizeof(long));
         var src = new long[n];
         var dst = new long[n];
-        Parallel.For(0, threads, t => { int per = n / threads; Array.Fill(src, t + 1, t * per, per); });
+        var options = new ParallelOptions { CancellationToken = ct };
+        Parallel.For(0, threads, options, t =>
+        {
+            var (start, end) = Partition(n, threads, t);
+            for (int offset = start; offset < end; offset += ChunkElements)
+            {
+                ct.ThrowIfCancellationRequested();
+                Array.Fill(src, t + 1L, offset, Math.Min(ChunkElements, end - offset));
+            }
+        });
+        return MeasureBandwidth(src, dst, threads, ct);
+    }
 
+    private const int ChunkElements = 65536; // 512 KiB; cancelamento entre blocos.
+
+    internal static (int Start, int End) Partition(int length, int threads, int worker) =>
+        ((int)((long)length * worker / threads), (int)((long)length * (worker + 1) / threads));
+
+    internal static long ReadBuffer(long[] src, int threads, CancellationToken ct)
+    {
+        long total = 0;
+        Parallel.For(0, threads, new ParallelOptions { CancellationToken = ct }, t =>
+        {
+            var (start, end) = Partition(src.Length, threads, t);
+            long s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+            for (int offset = start; offset < end; offset += ChunkElements)
+            {
+                ct.ThrowIfCancellationRequested();
+                int stop = Math.Min(offset + ChunkElements, end), i = offset;
+                for (; i + 3 < stop; i += 4)
+                { s0 += src[i]; s1 += src[i + 1]; s2 += src[i + 2]; s3 += src[i + 3]; }
+                for (; i < stop; i++) s0 += src[i];
+            }
+            Interlocked.Add(ref total, s0 + s1 + s2 + s3);
+        });
+        ct.ThrowIfCancellationRequested();
+        return total;
+    }
+
+    internal static void CopyBuffer(long[] src, long[] dst, int threads, CancellationToken ct)
+    {
+        Parallel.For(0, threads, new ParallelOptions { CancellationToken = ct }, t =>
+        {
+            var (start, end) = Partition(src.Length, threads, t);
+            for (int offset = start; offset < end; offset += ChunkElements)
+            {
+                ct.ThrowIfCancellationRequested();
+                Array.Copy(src, offset, dst, offset, Math.Min(ChunkElements, end - offset));
+            }
+        });
+        ct.ThrowIfCancellationRequested();
+    }
+
+    internal static (double Read, double Copy) MeasureBandwidth(long[] src, long[] dst,
+        int threads, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (src.Length == 0 || dst.Length != src.Length || threads < 1)
+            throw new ArgumentException("Buffers não vazios do mesmo tamanho e threads positivas são necessários.");
+        double bytes = (long)src.Length * sizeof(long);
         double bestRead = 0, bestCopy = 0;
-        for (int rep = 0; rep < 3 && !ct.IsCancellationRequested; rep++)
+        for (int rep = 0; rep < 3; rep++)
         {
             var sw = Stopwatch.StartNew();
-            long total = 0;
-            Parallel.For(0, threads, () => 0L, (t, _, acc) =>
-            {
-                int per = n / threads;
-                var span = new ReadOnlySpan<long>(src, t * per, per);
-                long s0 = 0, s1 = 0, s2 = 0, s3 = 0;
-                for (int i = 0; i + 3 < span.Length; i += 4) { s0 += span[i]; s1 += span[i + 1]; s2 += span[i + 2]; s3 += span[i + 3]; }
-                return acc + s0 + s1 + s2 + s3;
-            }, acc => Interlocked.Add(ref total, acc));
-            bestRead = Math.Max(bestRead, BandwidthBytes / sw.Elapsed.TotalSeconds / 1e9);
+            long total = ReadBuffer(src, threads, ct);
+            double readSeconds = sw.Elapsed.TotalSeconds;
+            GC.KeepAlive(total);
+            bestRead = Math.Max(bestRead, bytes / readSeconds / 1e9);
 
             sw.Restart();
-            Parallel.For(0, threads, t =>
-            {
-                int per = n / threads;
-                Array.Copy(src, t * per, dst, t * per, per);
-            });
-            // Cópia lê e escreve: conta os dois sentidos, como os benchmarks de memória fazem.
-            bestCopy = Math.Max(bestCopy, 2.0 * BandwidthBytes / sw.Elapsed.TotalSeconds / 1e9);
+            CopyBuffer(src, dst, threads, ct);
+            // Tráfego lógico: origem lida + destino escrito; não é tráfego físico do controlador.
+            bestCopy = Math.Max(bestCopy, 2.0 * bytes / sw.Elapsed.TotalSeconds / 1e9);
         }
         ct.ThrowIfCancellationRequested();
         return (bestRead, bestCopy);
     }
-
 }

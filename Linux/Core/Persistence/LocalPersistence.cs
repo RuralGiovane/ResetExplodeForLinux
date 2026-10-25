@@ -41,6 +41,14 @@ public sealed class LocalPersistence(XdgPaths paths)
         return new(updated, notice);
     }
 
+    public string? ClearHistory()
+    {
+        using var fileLock = Acquire(paths.HistoryFile);
+        string? notice = PreserveBeforeWrite(paths.HistoryFile, LoadHistory());
+        WriteAtomic(paths.HistoryFile, new BenchmarkHistory());
+        return notice;
+    }
+
     private static StoredData<T> Read<T>(string path, T defaults, Action<T> validate)
     {
         try

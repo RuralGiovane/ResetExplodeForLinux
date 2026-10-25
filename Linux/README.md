@@ -333,7 +333,7 @@ O [mapa de pastas](../docs/ESTRUTURA.md) explica a separação entre `Windows/`,
 
 ## Próximas etapas
 
-Builds, suíte automatizada, fluxo térmico, GPU/NVML e cenários gráficos das entregas atuais aprovados. Próxima frente proposta: distribuição portátil e instalação por usuário, com comando no terminal e entrada no menu. Ainda pendentes: Maker com dispositivo conectado, metodologia dos benchmarks completos, build Windows, perfis/credenciais, disco sem cache, GPU/Vulkan, overlay, atalhos globais e demais ferramentas Windows. Rede tem inventário, ICMP, transferência HTTP limitada, resolução de nomes e exportação; bufferbloat/capacidade máxima seguem fora da implementação.
+Builds, suíte automatizada, fluxo térmico, GPU/NVML e cenários gráficos das entregas atuais aprovados. Distribuição portátil e instalação por usuário ficam por último, após os itens obrigatórios do porte, conforme orientação do usuário. Ainda pendentes: Maker com dispositivo conectado, metodologia dos benchmarks completos, build Windows, perfis/credenciais, disco sem cache, GPU/Vulkan, overlay, atalhos globais e demais ferramentas Windows. Rede tem inventário, ICMP, transferência HTTP limitada, resolução de nomes e exportação; bufferbloat/capacidade máxima seguem fora da implementação.
 
 ### Autorização da consulta SMART
 
@@ -469,3 +469,23 @@ Build Avalonia aprovado, sem avisos/erros; verificação estrutural confirmou se
 O cartão inicial apresenta um resumo inspirado no fastfetch, com logo, nome da máquina, distribuição, kernel, arquitetura do processo, CPU, threads disponíveis, placa-mãe, BIOS e memória total. Usa os dados existentes de `LinuxSystemInfoCollector`; não executa fastfetch nem instala dependências. GPU usa a identificação/fonte reportada pelos sensores atuais, sem inferir modelo a partir de driver genérico. O espaço de `/` vem da última coleta de montagens, sem somar volumes e sem confundir essa capacidade com a de todos os discos.
 
 CPU, temperatura e memória permanecem ao vivo. Campos ausentes têm estado explícito; erro de telemetria limpa identificação GPU e erro de armazenamento limpa capacidade do resumo. A seleção das sub-abas continua preservada. Build Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados; resumo aprovado pelo usuário, que solicitou o commit da entrega.
+
+## Metodologia e validação CPU/RAM
+
+Revisão de 25/10/2026: banda de RAM corrigida para processar todo o buffer com qualquer quantidade de threads e verificar cancelamento por blocos. Novos históricos/relatórios registram metodologia e parâmetros; banda usa `linux-ram-bandwidth-v2`. Testes pequenos disponíveis com `--memory-only`. Usuário aprovou o funcionamento desta etapa. Valores das repetições e comparação Windows/Linux continuam pendentes no [roteiro de benchmarks](../docs/VALIDACAO_BENCHMARKS.md).
+
+## Benchmarks de disco e carregamento
+
+Na página **Benchmark**, informe uma pasta absoluta existente e use **TESTAR DISCO** ou **TESTAR CARREGAMENTO**. Arquivos temporários exclusivos, Linux x64 com I/O direto verificado, sem acesso a discos brutos. Disco usa 512 MiB mais escrita aleatória por 4 s; carregamento usa 512 MiB + 1000 assets de 64 KiB. Reserve 1,1 GiB livres. Cancelamento, histórico e exportação seguem o fluxo existente. Em Btrfs, apenas arquivos temporários usam NoCoW/NoCompress; resultados não representam o modo CoW padrão.
+
+Testes simulados com `--disk-only`; diagnóstico real reduzido opt-in com `--live-disk-smoke <pasta>`. Backend real aprovado no Btrfs local; tmpfs recusado. Validação gráfica e cargas completas pendentes. Consulte [metodologia, limites e roteiro](../docs/VALIDACAO_DISCO.md).
+
+## Limpeza de memória e estabilidade
+
+O cartão RAM oferece **LIBERAR MEMÓRIA DOS TESTES** após a execução: solicita coleta/compactação do .NET, mostra memória gerenciada antes/depois e preserva histórico. Não equivale a limpar toda a RAM do sistema. A ação fica bloqueada durante testes/exportações.
+
+**Sistema e sensores → Estabilidade** consulta manualmente contadores EDAC de erros corrigidos/não corrigidos de memória. Ausência de suporte é indisponibilidade, não aprovação. Etapa inicial: logs do kernel/GPU e outros diagnósticos ainda pendentes. Testes dedicados: `--memory-cleanup-only`, `--stability-only`; leitura real: `--live-edac`. Validação gráfica será feita junto com disco, conforme o [roteiro conjunto](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+## Ajustes após o aceite conjunto
+
+Usuário aprovou disco/carregamento e limpeza/EDAC. Após o feedback, progresso/CANCELAR acompanham o cartão do benchmark ativo. O cartão da sessão tem limpeza própria (somente texto); o histórico salvo tem limpeza com confirmação, incluindo pendências, para começar novas exportações sem registros antigos. Arquivos já exportados e configurações são preservados. Aviso da RAM explica recuperação em etapas e oferece “Mais detalhes”. Revisão dos demais cartões ficou para depois; novos controles ainda aguardam conferência visual no [roteiro atualizado](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).

@@ -2,6 +2,54 @@
 
 Este arquivo acompanha a migração construída a partir do projeto Windows, agora no fork `ResetExplodeForLinux/` (anteriormente `ResetExplode/`). O nome da aplicação permanece `ResetExplode`. Para cada alteração, registrar data, arquivos afetados, o que mudou, motivo, validação e pendências. Distinguir trabalho planejado de funcionalidades implementadas e verificadas.
 
+## 2026-10-25 — Aceite conjunto e ajustes de usabilidade
+
+Usuário preencheu os roteiros de disco/carregamento e limpeza/EDAC como aprovados e pediu ajustes antes do commit. Observações transitórias removidas do roteiro após incorporar as ações: aviso da recuperação de RAM em etapas, explicação expansível na RAM, controles de progresso/cancelamento no cartão ativo, registro da sessão separado e botões independentes para limpar sessão/histórico salvo. Revisão geral de legibilidade dos demais cartões fica em checklist posterior.
+
+`MainWindow.axaml`/code-behind passam a mover o mesmo painel de execução entre os cartões, preservando controles e fluxo de cancelamento. `MainWindow.HistoryCleanup.cs` oferece limpeza da sessão e confirmação para histórico salvo, aguarda persistência em andamento e limpa cópias locais/pendências somente após sucesso. `LocalPersistence.ClearHistory` usa lock, validação de versão, backup de JSON inválido e escrita atômica. Bloqueios recíprocos e fechamento aguardam a operação. Arquivos exportados e configurações são preservados; nenhuma limpeza real de dados do usuário foi acionada pelo agente.
+
+Builds Avalonia/SmokeTests aprovados em Release/.NET 8, zero avisos/erros. Testes de persistência ampliados cobrem limpeza/reabertura, exportação vazia, nova gravação sem retorno de registros antigos, lock, versão desconhecida, preservação de configuração e backup de arquivo inválido. Suíte completa e `git diff --check` aprovados. Novos ajustes visuais ainda não conferidos pelo usuário; aceites anteriores não foram aplicados retroativamente. CLI Superdesign não iniciou dentro do prazo; alterações realizadas diretamente no Avalonia, sem artefato remoto.
+
+Documentação atualizada para o commit local da entrega acumulada (RAM, disco/carregamento, limpeza, EDAC e usabilidade). Nenhum push solicitado.
+
+## 2026-10-25 — Limpeza manual de memória e primeira etapa de estabilidade
+
+Usuário adiou conferência gráfica de disco para validar entregas juntas e relatou RAM ainda ocupada após sucesso/falha. Revisão encontrou buffers locais sem retenção intencional; coleta tardia do .NET é compatível com o sintoma, sem diagnóstico de vazamento na sessão do usuário. `BenchmarkMemoryCleanup.cs` e `MainWindow.MemoryCleanup.cs` adicionam botão para coleta completa/compactação LOH sob demanda, contagem de memória gerenciada antes/depois e preservação de dados vivos/histórico. Exclusão com benchmarks/rede/exportações/configurações integrada às entradas existentes; fechamento aguarda a limpeza. Não altera caches globais nem faz limpeza automática durante medições.
+
+Primeira frente de estabilidade: `Hardware/Stability/LinuxEdacCollector.cs` e `MainWindow.Stability.cs`, com nova sub-aba Estabilidade e consulta manual de controladores EDAC, CE/UE e segundos desde reset. Sem somar DIMMs aos controladores, sem resets, sem zero inventado quando dados estão ausentes. Sem equivalência a WHEA ou certificado de estabilidade. Logs/GPU/PCIe e demais partes de OcCheck permanecem pendentes.
+
+Testes em `MemoryCleanupChecks.cs`/`EdacChecks.cs` e comandos dedicados adicionados à suíte. Builds Avalonia/SmokeTests em Release/.NET 8 aprovados, zero avisos/erros; suíte completa aprovada. Limpeza isolada observou 9,1 → 1,1 MiB gerenciados; dentro da suíte 34,4 → 2,3 MiB, preservando dados vivos. Não são medidas do app gráfico com carga de 2 GiB. EDAC real retornou nenhum controlador acessível; suporte real com contadores permanece não validado. `git diff --check` aprovado.
+
+README/plano e `VALIDACAO_ESTABILIDADE_MEMORIA.md` atualizados. Conferência gráfica conjunta (disco, limpeza e EDAC) pendente a pedido do usuário. Sem commit/push.
+
+## 2026-10-25 — Benchmarks de disco e carregamento Linux
+
+Adicionados `Linux/Core/Storage/LinuxDirectFile.cs`, `BenchmarkWorkspace.cs` e `Benchmarks/DiskBenchmarks.cs`. Backend Linux x64 com buffers nativos alinhados, arquivos exclusivos, O_DIRECT/O_DSYNC, rejeição de transferências curtas e suporte consultado por statx. Btrfs usa consulta de setor via ioctl e configura/verifica NoCoW/NoCompress somente nos arquivos novos, evitando o caminho de escrita com checksum/cache. Nenhuma alteração de arquivos existentes, diretórios do usuário, configurações de montagem ou cache global. Limpeza não recursiva de nomes rastreados; falha impede resultado de sucesso e informa a pasta residual.
+
+`MainWindow.DiskBench.cs`, AXAML e coordenação da janela integram pasta de destino, disco sequencial/aleatório, carregamento de pacote/assets, progresso, cancelamento, política térmica CPU, exclusão com rede/exportação e fechamento. Histórico/relatórios reutilizados; `BenchmarkMethodology.cs` registra cargas, unidades e limites. Core habilita unsafe para o buffer alinhado; modo suplementar de validação .NET 10 acompanha essa configuração. Windows e fontes compartilhados preservados.
+
+`DiskBenchmarkChecks.cs` e CLI adicionam suíte simulada padrão/`--disk-only` e diagnóstico real opt-in `--live-disk-smoke <pasta>`. Testes cobrem dados/contagens, alinhamento, I/O curto, falhas sequenciais/paralelas, cancelamento, pré-cancelamento, espaço insuficiente, exclusividade e limpeza que preserva arquivos não rastreados. Diagnóstico real confirma round-trip de bytes, EOF rejeitado, criação exclusiva e cargas reduzidas de disco/carregamento.
+
+Validação: builds Avalonia e SmokeTests em Release/.NET 8 com zero avisos/erros; suíte completa aprovada. Diagnóstico real reduzido aprovado no Btrfs do workspace; `/tmp` (tmpfs) recusado por falta de suporte confirmado. Sem diretórios de benchmark residuais no workspace. `git diff --check` aprovado. Referências oficiais, metodologia e roteiro em `docs/VALIDACAO_DISCO.md`; READMEs/plano atualizados. Cargas padrão e validação gráfica permanecem pendentes, assim como outros sistemas de arquivos e comparação Windows/Linux. Sem commit/push; distribuição continua por último.
+
+## 2026-10-25 — Aceite funcional CPU/RAM
+
+Usuário confirmou “tudo funciona certinho” após a entrega de correções e metodologia CPU/RAM. Aceite funcional registrado no roteiro, plano e README Linux. Não foram informadas métricas individuais nem séries de três repetições; análise quantitativa de repetibilidade e comparação Windows/Linux continuam pendentes. Próxima frente funcional: disco/carregamento sem cache; empacotamento permanece por último.
+
+Alteração somente documental, verificada com `git diff --check`; builds e suíte aprovados na implementação anterior. Sem novo commit ou push.
+
+## 2026-10-25 — Revisão de metodologia CPU/RAM
+
+Corrigido `Linux/Core/Benchmarks/MemoryBench.cs`: partições proporcionais cobrem todos os elementos, leitura inclui caudas de 1–3 elementos e cópia/leitura/inicialização verificam cancelamento por blocos de 512 KiB. Preparação e aquecimento da latência também verificam cancelamento. Volume padrão de RAM, repetições e agregação preservados; mudança de execução identificada como `linux-ram-bandwidth-v2`. Código Windows/compartilhado preservado.
+
+Adicionado `BenchmarkMethodology.cs`, integrado ao contexto no `MainWindow.axaml.cs`, para registrar parâmetros e limitações no histórico/HTML/JSON sem reescrever registros antigos. `MemoryChecks.cs` exercita os mesmos laços com buffers pequenos, threads não divisoras, caudas, soma, cópia, taxas e pré-cancelamento; acesso interno restrito ao assembly de testes via csproj. Comando `--memory-only` e integração à suíte padrão adicionados. README, plano e novo `VALIDACAO_BENCHMARKS.md` descrevem metodologia e roteiro de execução completa.
+
+Validação: builds SmokeTests e Avalonia em Release com `--no-restore`, zero avisos/erros; teste dedicado de RAM e suíte completa aprovados em .NET 8. `git diff --check` aprovado. Não executados render completo, buffers padrão de 2 GiB ou interação gráfica nesta etapa; esses aceites e comparação entre plataformas continuam pendentes. Sem commit/push.
+
+## 2026-10-25 — Prioridade dos itens obrigatórios
+
+Usuário adiou o empacotamento/instalação para o final, priorizando as pendências obrigatórias do porte. Plano e README Linux corrigidos para não indicar distribuição como próxima frente. Nenhum código de empacotamento foi criado. Alteração somente documental; verificada com `git diff --check`, sem necessidade de executar testes da aplicação.
+
 ## 2026-10-25 — Aceite final do resumo e commit da entrega
 
 Usuário aprovou o resumo (“ficou perfeito”) e solicitou commit, além de discutir distribuição como aplicativo instalável/portátil. Aceite registrado na checklist e estado atual atualizado. Entrega reúne ICMP, throughput HTTP limitado, resolução de nomes, relatórios de rede esquema 3, sub-abas e Visão geral. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados na última implementação; esta etapa altera somente documentação e prepara o commit solicitado. Nenhum push solicitado.

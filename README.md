@@ -40,6 +40,8 @@ Resolução manual de nomes pelo sistema implementada, com exportação no esque
 
 Sistema e sensores reorganizado em sete sub-abas dedicadas, com navegação fixa e rolagem por seção. Organização aprovada pelo usuário; Visão geral ampliada com resumo do sistema inspirado no fastfetch. Build e suíte aprovados; resumo aprovado pelo usuário, conforme o roteiro.
 
+Benchmarks Linux de disco/carregamento implementados com I/O direto e arquivos temporários exclusivos. Backend real reduzido validado em Btrfs; roteiro gráfico/cargas completas aprovado pelo usuário. Ajustes posteriores de cancelamento por cartão e limpeza de histórico descritos no [roteiro atualizado](docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
 ## Continuar o trabalho
 
 Leia o [guia](docs/plano_porte_linux_reset_explode.md), o [registro](docs/REGISTRO_DE_ALTERACOES.md) e o [mapa de pastas](docs/ESTRUTURA.md). Os caminhos citados nas entradas históricas podem anteceder a reorganização; o mapa mostra os destinos atuais.

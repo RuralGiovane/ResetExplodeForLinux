@@ -35,7 +35,7 @@ props = ET.SubElement(project, 'PropertyGroup')
 for key, value in {
     'OutputType': 'Exe', 'TargetFramework': 'net10.0', 'Nullable': 'enable',
     'ImplicitUsings': 'enable', 'EnableDefaultCompileItems': 'false',
-    'UseAppHost': 'false', 'EnableTargetingPackDownload': 'false'
+    'UseAppHost': 'false', 'EnableTargetingPackDownload': 'false', 'AllowUnsafeBlocks': 'true'
 }.items():
     ET.SubElement(props, key).text = value
 items = ET.SubElement(project, 'ItemGroup')

@@ -151,8 +151,8 @@
                 <TextBlock Text="Informe um domínio/host. Consulta manual pelo resolvedor do sistema; o nome pode ser enviado aos serviços configurados. Cache, hosts e VPN podem influenciar o resultado; não mede isoladamente um servidor DNS." Classes="sub" />
                 <TextBox x:Name="DnsTarget" Watermark="Domínio, por exemplo example.com (sem https://)" />
                 <WrapPanel Orientation="Horizontal">
-                  <Button x:Name="StartDnsButton" Content="RESOLVER NOME" Classes="outline" Click="StartDnsTest" />
-                  <Button x:Name="CancelDnsButton" Content="CANCELAR RESOLUÇÃO" Classes="outline" Click="CancelDnsTest" IsEnabled="False" />
+                  <Button x:Name="StartDnsButton" Margin="0,0,12,8" Content="RESOLVER NOME" Classes="outline" Click="StartDnsTest" />
+                  <Button x:Name="CancelDnsButton" Margin="0,0,12,8" Content="CANCELAR RESOLUÇÃO" Classes="outline" Click="CancelDnsTest" IsEnabled="False" />
                 </WrapPanel>
                 <TextBlock Text="Solicita cancelamento após 5 s; encerramento depende do resolvedor do sistema. Nenhuma configuração DNS é alterada." Classes="sub" />
                 <TextBlock x:Name="DnsResultText" Text="Nenhuma resolução executada." TextWrapping="Wrap" />
@@ -160,22 +160,22 @@
                 <TextBlock Text="Informe o IP de destino (IPv4 ou IPv6). Envia 10 pings apenas ao iniciar; timeout de 2 s e pausa de 500 ms entre tentativas." Classes="sub" />
                 <TextBox x:Name="LatencyTarget" Watermark="IP de destino, por exemplo o gateway acima" />
                 <WrapPanel Orientation="Horizontal">
-                  <Button x:Name="StartNetworkTestButton" Content="TESTAR LATÊNCIA" Classes="outline" Click="StartLatencyTest" />
-                  <Button x:Name="CancelNetworkTestButton" Content="CANCELAR TESTE" Classes="outline" Click="CancelLatencyTest" IsEnabled="False" />
+                  <Button x:Name="StartNetworkTestButton" Margin="0,0,12,8" Content="TESTAR LATÊNCIA" Classes="outline" Click="StartLatencyTest" />
+                  <Button x:Name="CancelNetworkTestButton" Margin="0,0,12,8" Content="CANCELAR TESTE" Classes="outline" Click="CancelLatencyTest" IsEnabled="False" />
                 </WrapPanel>
                 <TextBlock x:Name="NetworkTestResult" Text="Nenhum teste executado." TextWrapping="Wrap" />
                 <TextBlock Text="Jitter: média da diferença absoluta de latência entre tentativas consecutivas com resposta. Tempos em milissegundos inteiros; zero pode indicar menos de 1 ms. Ausência de resposta pode ser bloqueio de ICMP e não comprova falha da internet. Não mede velocidade de download/upload." Classes="sub" />
                 <TextBlock Text="DOWNLOAD / UPLOAD · HTTP" Classes="label" />
                 <TextBlock Text="Ao iniciar, conecta a speed.cloudflare.com (Cloudflare verá seu IP). Baixa 10 MB e envia 5 MB de dados sintéticos, mais tráfego de protocolo/respostas. Até 20 s por etapa; pode consumir sua franquia de dados." Classes="sub" />
                 <WrapPanel Orientation="Horizontal">
-                  <Button x:Name="StartThroughputButton" Content="TESTAR DOWNLOAD / UPLOAD" Classes="outline" Click="StartThroughputTest" />
-                  <Button x:Name="CancelThroughputButton" Content="CANCELAR TRANSFERÊNCIA" Classes="outline" Click="CancelThroughputTest" IsEnabled="False" />
+                  <Button x:Name="StartThroughputButton" Margin="0,0,12,8" Content="TESTAR DOWNLOAD / UPLOAD" Classes="outline" Click="StartThroughputTest" />
+                  <Button x:Name="CancelThroughputButton" Margin="0,0,12,8" Content="CANCELAR TRANSFERÊNCIA" Classes="outline" Click="CancelThroughputTest" IsEnabled="False" />
                 </WrapPanel>
                 <TextBlock x:Name="ThroughputResultText" Text="Nenhum teste de transferência executado." TextWrapping="Wrap" />
                 <TextBlock Text="Uma transferência por vez, sem aquecimento. Taxa inclui conexão e espera do servidor; upload exige resposta HTTP de sucesso. Medição pontual, não capacidade máxima da conexão. Erro ou cancelamento descarta ambas as taxas; novo teste limpa as taxas anteriores." Classes="sub" />
                 <WrapPanel Orientation="Horizontal">
-                  <Button x:Name="NetworkHtmlButton" Content="EXPORTAR REDE HTML" Classes="outline" Click="ExportNetworkHtml" />
-                  <Button x:Name="NetworkJsonButton" Content="EXPORTAR REDE JSON" Classes="outline" Click="ExportNetworkJson" />
+                  <Button x:Name="NetworkHtmlButton" Margin="0,0,12,8" Content="EXPORTAR REDE HTML" Classes="outline" Click="ExportNetworkHtml" />
+                  <Button x:Name="NetworkJsonButton" Margin="0,0,12,8" Content="EXPORTAR REDE JSON" Classes="outline" Click="ExportNetworkJson" />
                 </WrapPanel>
                 <TextBlock Text="O relatório inclui IPs, gateways, DNS e destino do teste. Exporta a coleta e os resultados concluídos de resolução de nomes, ICMP e transferência; iniciar um teste limpa o resultado anterior daquele tipo." Classes="sub" />
                 <TextBlock x:Name="NetworkExportStatusText" Classes="sub" />
@@ -278,6 +278,21 @@
             </Border>
           </ScrollViewer>
         </TabItem>
+        <TabItem Header="Estabilidade">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <Border Classes="card">
+              <StackPanel Spacing="12">
+                <TextBlock Text="ESTABILIDADE · ERROS DE MEMÓRIA" Classes="label" />
+                <TextBlock Text="Contadores EDAC do kernel" Classes="big" />
+                <TextBlock Text="Consulta somente de leitura. CE são erros corrigidos; UE são erros não corrigidos reportados pelo controlador. Contadores são cumulativos desde o reset indicado pelo driver, não apenas durante os benchmarks." Classes="sub" />
+                <Button x:Name="RefreshStabilityButton" Content="CONSULTAR / ATUALIZAR EDAC" Classes="outline" Click="RefreshStability" />
+                <TextBlock x:Name="StabilityStatusText" Text="Consulta ainda não realizada." Classes="sub" />
+                <TextBox x:Name="StabilityDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" />
+                <TextBlock Text="Ausência de EDAC pode significar falta de suporte, driver ou permissão. Zero nos contadores não comprova ausência de falhas. Esta etapa não consulta eventos de GPU, logs do kernel ou erros PCIe, nem altera/reset os contadores." Classes="sub" />
+              </StackPanel>
+            </Border>
+          </ScrollViewer>
+        </TabItem>
         <TabItem Header="Maker">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="0,16,0,0">
             <Border Classes="card">
@@ -342,6 +357,13 @@
               <Button x:Name="SingleButton" Content="1 THREAD" Classes="outline" Click="RunSingle" Margin="0,0,8,8" />
               <Button x:Name="MultiButton" Content="TODAS AS THREADS" Classes="primary" Click="RunMulti" Margin="0,0,0,8" />
             </WrapPanel>
+            <ContentControl x:Name="RenderRunHost">
+              <StackPanel x:Name="BenchmarkRunPanel" Spacing="12">
+            <TextBlock x:Name="StatusText" Text="Pronto para iniciar." TextWrapping="Wrap" />
+            <ProgressBar x:Name="RunProgress" Minimum="0" Maximum="100" />
+            <Button x:Name="CancelButton" Content="CANCELAR" Classes="outline" IsEnabled="False" Click="CancelRun" />
+              </StackPanel>
+            </ContentControl>
           </StackPanel>
         </Border>
         <Border Classes="card">
@@ -350,6 +372,7 @@
             <TextBlock Text="30 mil unidades em batalha" Classes="big" />
             <TextBlock Text="Física, colisões e inteligência artificial. Aquecimento de 2 s seguido de 10 s de medição." Classes="sub" />
             <Button x:Name="SimButton" Content="INICIAR SIMULAÇÃO" Classes="outline" Click="RunSimulation" />
+            <ContentControl x:Name="SimulationRunHost" />
           </StackPanel>
         </Border>
         <Border Classes="card">
@@ -361,14 +384,34 @@
               <Button x:Name="LatencyButton" Content="LATÊNCIA" Classes="outline" Click="RunLatency" Margin="0,0,8,8" />
               <Button x:Name="BandwidthButton" Content="BANDA" Classes="outline" Click="RunBandwidth" Margin="0,0,0,8" />
             </WrapPanel>
+            <ContentControl x:Name="MemoryRunHost" />
+            <Button x:Name="ReleaseMemoryButton" Content="LIBERAR MEMÓRIA DOS TESTES" Classes="outline" Click="ReleaseTestMemory" />
+            <TextBlock Text="Libera memória temporária do app sem apagar seus resultados. A recuperação pode ocorrer em etapas: aguarde a conclusão e a atualização do monitor do sistema antes de repetir." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch">
+              <TextBlock Text="Após sucesso, erro ou cancelamento, uma nova limpeza pode recuperar objetos que ficaram disponíveis depois da coleta anterior. Isso não significa que vários cliques sejam sempre necessários. A ação pode causar breve pausa; o uso total de RAM pode não voltar ao valor anterior e uma nova coleta pode não reduzir o número exibido." Classes="sub" />
+            </Expander>
+            <TextBlock x:Name="MemoryCleanupStatusText" Classes="sub" />
           </StackPanel>
         </Border>
         <Border Classes="card">
           <StackPanel Spacing="12">
-            <TextBlock x:Name="StatusText" Text="Pronto para iniciar." TextWrapping="Wrap" />
-            <ProgressBar x:Name="RunProgress" Minimum="0" Maximum="100" />
-            <Button x:Name="CancelButton" Content="CANCELAR" Classes="outline" IsEnabled="False" Click="CancelRun" />
+            <TextBlock Text="DISCO E CARREGAMENTO" Classes="label" />
+            <TextBlock Text="Pasta do volume a testar" Classes="big" />
+            <TextBox x:Name="DiskBenchmarkPath" Watermark="Caminho absoluto de uma pasta existente, por exemplo /home/usuario" />
+            <TextBlock Text="Disco: arquivo de 512 MiB, leitura/escrita sequencial e testes aleatórios de 4 s cada. A escrita aleatória adiciona volume variável de gravação. Carregamento: pacote de 512 MiB + 1000 arquivos de 64 KiB. Reserve 1,1 GiB livres. Arquivos exclusivos são removidos ao terminar ou cancelar." Classes="sub" />
+            <TextBlock Text="Linux x64 com I/O direto confirmado pelo sistema de arquivos. Se indisponível, o teste informa erro. No Btrfs, apenas os arquivos temporários usam NoCoW/sem compressão; não representa arquivos Btrfs comuns. Não acessa discos brutos. Cache do dispositivo e metadados ainda podem influenciar. O limite térmico acima monitora a CPU, não o disco." Classes="sub" />
+            <WrapPanel>
+              <Button x:Name="DiskBenchmarkButton" Content="TESTAR DISCO" Classes="outline" Click="RunDiskBenchmark" Margin="0,0,8,8" />
+              <Button x:Name="LoadingBenchmarkButton" Content="TESTAR CARREGAMENTO" Classes="outline" Click="RunLoadingBenchmark" Margin="0,0,0,8" />
+            </WrapPanel>
+            <ContentControl x:Name="DiskRunHost" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
             <TextBlock Text="REGISTRO DESTA SESSÃO" Classes="label" />
+            <Button x:Name="ClearSessionButton" Content="LIMPAR REGISTRO DA SESSÃO" Classes="outline" Click="ClearSessionHistory" />
+            <TextBlock Text="Limpa somente o texto desta sessão. O histórico salvo e as exportações não são alterados." Classes="sub" />
             <TextBox x:Name="ResultsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" />
           </StackPanel>
         </Border>
@@ -384,6 +427,16 @@
             </WrapPanel>
             <TextBlock Text="Exporta o histórico disponível, incluindo contexto do sistema e registros pendentes. Escolha onde salvar o arquivo." Classes="sub" />
             <TextBlock x:Name="ExportStatusText" Classes="sub" />
+            <Button x:Name="ClearHistoryButton" Content="LIMPAR HISTÓRICO SALVO" Classes="outline" Click="RequestHistoryClear" />
+            <TextBlock Text="Remove os registros salvos e pendentes usados nas próximas exportações. Arquivos já exportados e configurações são preservados." Classes="sub" />
+            <StackPanel x:Name="ClearHistoryConfirmation" IsVisible="False" Spacing="8">
+              <TextBlock Text="Apagar o histórico salvo e os registros pendentes? Exporte antes se quiser guardar uma cópia." TextWrapping="Wrap" />
+              <WrapPanel>
+                <Button x:Name="ConfirmClearHistoryButton" Content="APAGAR HISTÓRICO" Classes="outline" Click="ConfirmHistoryClear" Margin="0,0,8,8" />
+                <Button Content="VOLTAR" Classes="outline" Click="DismissHistoryClear" Margin="0,0,0,8" />
+              </WrapPanel>
+            </StackPanel>
+            <TextBlock x:Name="HistoryClearStatusText" Classes="sub" />
             <TextBox x:Name="HistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140" MaxHeight="360" />
           </StackPanel>
         </Border>

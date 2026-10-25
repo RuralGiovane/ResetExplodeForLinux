@@ -105,7 +105,29 @@ internal static class PersistenceChecks
             var unavailable = new LocalPersistence(new(Path.Combine(blocked, "settings.json"), paths.HistoryFile));
             Fails<IOException>(() => unavailable.SaveSettings(settings));
             Check(File.ReadAllText(blocked) == "não sobrescrever", "Falha de diretório destruiu um arquivo existente.");
-            Console.WriteLine("OK: XDG, round-trip, recuperação, versão desconhecida, lock, deduplicação e retenção do histórico.");
+            string settingsBeforeClear = File.ReadAllText(paths.SettingsFile);
+            string historyBeforeClear = File.ReadAllText(paths.HistoryFile);
+            using (var held = new FileStream(paths.HistoryFile + ".lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                Fails<IOException>(() => store.ClearHistory());
+            Check(File.ReadAllText(paths.HistoryFile) == historyBeforeClear, "Limpeza sem lock alterou o histórico.");
+            store.ClearHistory();
+            Check(new LocalPersistence(paths).LoadHistory().Value.Entries.Count == 0, "Histórico não ficou vazio após reabrir.");
+            Check(File.ReadAllText(paths.SettingsFile) == settingsBeforeClear, "Limpeza alterou configuração.");
+            var emptyReport = BenchmarkReportBuilder.Capture(store.LoadHistory().Value.Entries, [], "test");
+            Check(emptyReport.Benchmarks.Count == 0 && BenchmarkReportBuilder.Html(emptyReport).Contains("Nenhuma execução registrada"), "Exportação ressuscitou histórico apagado.");
+            store.ClearHistory();
+            store.AppendHistory([cancelled]);
+            Check(store.LoadHistory().Value.Entries.Single().Id == cancelled.Id, "Nova gravação restaurou registros antigos.");
+            const string futureHistory = "{\"schemaVersion\":99,\"entries\":[]}";
+            File.WriteAllText(paths.HistoryFile, futureHistory);
+            Fails<IOException>(() => store.ClearHistory());
+            Check(File.ReadAllText(paths.HistoryFile) == futureHistory, "Limpeza destruiu versão desconhecida.");
+            File.WriteAllText(paths.HistoryFile, "{inválido para limpar");
+            Check(store.ClearHistory() != null && store.LoadHistory().Value.Entries.Count == 0,
+                "Limpeza de histórico inválido não preservou backup ou não esvaziou.");
+            Check(Directory.GetFiles(Path.GetDirectoryName(paths.HistoryFile)!, "benchmarks.json.invalid-*").Any(path => File.ReadAllText(path) == "{inválido para limpar"), "Original inválido perdido na limpeza.");
+            Check(!Directory.EnumerateFiles(root, "*.tmp-*", SearchOption.AllDirectories).Any(), "Limpeza deixou temporários.");
+            Console.WriteLine("OK: XDG, round-trip, recuperação, versão desconhecida, lock, retenção, limpeza e exportação vazia.");
         }
         finally
         {

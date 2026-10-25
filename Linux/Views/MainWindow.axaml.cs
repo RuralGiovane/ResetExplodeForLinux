@@ -12,6 +12,8 @@ namespace ResetExplode;
 public partial class MainWindow : Window
 {
     private readonly BenchmarkRunner _runner = new();
+    private readonly StackPanel _benchmarkRunPanel;
+    private ContentControl _runHost;
     private readonly DispatcherTimer _timer;
     private readonly DispatcherTimer _thermalStatusTimer;
     private readonly Stopwatch _elapsed = new();
@@ -27,6 +29,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _benchmarkRunPanel = BenchmarkRunPanel;
+        _runHost = RenderRunHost;
         InitializePersistence();
         MachineText.Text = $"{Environment.MachineName} · {Environment.ProcessorCount} threads lógicas · {RuntimeInformation.OSDescription}";
         _bitmap = new WriteableBitmap(new PixelSize(BenchRenderer.Width, BenchRenderer.Height),
@@ -44,7 +48,7 @@ public partial class MainWindow : Window
         UpdateThermalStatus();
         Closing += OnClosing;
         Opened += async (_, _) => { StartTelemetry(); StartPowerMonitoring(); await Task.WhenAll(StartStorageRefresh(), StartSerialRefresh(), StartNetworkRefresh()); };
-        Closed += (_, _) => { StopTelemetry(); _storageCancellation.Dispose(); _serialCancellation.Dispose(); _networkCancellation.Dispose(); _powerCancellation.Dispose(); _timer.Stop(); _thermalStatusTimer.Stop(); RenderImage.Source = null; _bitmap.Dispose(); };
+        Closed += (_, _) => { StopTelemetry(); _storageCancellation.Dispose(); _serialCancellation.Dispose(); _networkCancellation.Dispose(); _powerCancellation.Dispose(); _stabilityCancellation.Dispose(); _timer.Stop(); _thermalStatusTimer.Stop(); RenderImage.Source = null; _bitmap.Dispose(); };
     }
 
     internal void ActivateFromAnotherInstance()
@@ -61,7 +65,7 @@ public partial class MainWindow : Window
 
     private Task RunRenderAsync(int threads)
     {
-        if (_cancellation != null || _closeWhenStopped || _exporting || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return Task.CompletedTask;
+        if (_cancellation != null || _closeWhenStopped || _exporting || _cleaningMemory || _clearingHistory || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return Task.CompletedTask;
         _renderer = new BenchRenderer();
         var renderer = _renderer;
         return RunAsync("cpu-render", $"Path tracing · {threads} thread(s)", ct =>
@@ -74,7 +78,7 @@ public partial class MainWindow : Window
 
     private async void RunSimulation(object? sender, RoutedEventArgs e)
     {
-        if (_cancellation != null || _closeWhenStopped || _exporting || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
+        if (_cancellation != null || _closeWhenStopped || _exporting || _cleaningMemory || _clearingHistory || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
         _simulation = new GameSimBench();
         var simulation = _simulation;
         await RunAsync("cpu-simulation", "Simulação de jogo", ct =>
@@ -103,12 +107,29 @@ public partial class MainWindow : Window
     private async Task RunAsync(string test, string name, Func<CancellationToken, BenchmarkMeasurement> work,
         Dictionary<string, string>? parameters = null)
     {
-        if (_cancellation != null || _closeWhenStopped || _exporting || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
+        if (_cancellation != null || _closeWhenStopped || _exporting || _cleaningMemory || _clearingHistory || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
+        ContentControl destination = test switch
+        {
+            "cpu-simulation" => SimulationRunHost,
+            "ram-latency" or "ram-bandwidth" => MemoryRunHost,
+            "disk-direct" or "disk-loading" => DiskRunHost,
+            _ => RenderRunHost
+        };
+        if (_runHost != destination)
+        {
+            _runHost.Content = null;
+            destination.Content = _benchmarkRunPanel;
+            _runHost = destination;
+        }
+        ClearHistoryConfirmation.IsVisible = false;
         bool thermalEnabled = ThermalEnabled.IsChecked == true;
         double thermalLimit = (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit);
         int started = 0;
         var settings = new LinuxSettings { ThermalEnabled = thermalEnabled, ThermalLimit = thermalLimit };
-        var context = BenchmarkContext(parameters);
+        var methodology = BenchmarkMethodology.Parameters(test);
+        if (parameters != null)
+            foreach (var parameter in parameters) methodology[parameter.Key] = parameter.Value;
+        var context = BenchmarkContext(methodology);
         BenchmarkHistoryEntry? historyEntry = null;
         BenchmarkHistoryEntry Entry(BenchmarkOutcome outcome, string summary, BenchmarkMeasurement? measured = null) => new()
         {
@@ -189,18 +210,21 @@ public partial class MainWindow : Window
     private void SetRunning(bool running)
     {
         SingleButton.IsEnabled = MultiButton.IsEnabled = SimButton.IsEnabled =
-            LatencyButton.IsEnabled = BandwidthButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
-        StartNetworkTestButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null && !_closeWhenStopped;
+            DiskBenchmarkButton.IsEnabled = LoadingBenchmarkButton.IsEnabled = DiskBenchmarkPath.IsEnabled =
+            LatencyButton.IsEnabled = BandwidthButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
+        StartNetworkTestButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null && !_closeWhenStopped;
         StartDnsButton.IsEnabled = StartNetworkTestButton.IsEnabled;
         StartThroughputButton.IsEnabled = StartNetworkTestButton.IsEnabled;
+        ReleaseMemoryButton.IsEnabled = !running && !_cleaningMemory && !_clearingHistory && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null && !_closeWhenStopped;
+        ClearSessionButton.IsEnabled = ClearHistoryButton.IsEnabled = ConfirmClearHistoryButton.IsEnabled = ReleaseMemoryButton.IsEnabled;
         CancelButton.IsEnabled = running;
-        ThermalEnabled.IsEnabled = ThermalLimit.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
-        SaveSettingsButton.IsEnabled = RetrySaveButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
+        ThermalEnabled.IsEnabled = ThermalLimit.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
+        SaveSettingsButton.IsEnabled = RetrySaveButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
         ExportHtmlButton.IsEnabled = ExportJsonButton.IsEnabled =
             StorageHtmlButton.IsEnabled = StorageJsonButton.IsEnabled =
             PowerHtmlButton.IsEnabled = PowerJsonButton.IsEnabled =
             NetworkHtmlButton.IsEnabled = NetworkJsonButton.IsEnabled =
-            SerialHtmlButton.IsEnabled = SerialJsonButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
+            SerialHtmlButton.IsEnabled = SerialJsonButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
     }
 
     private void UpdateThermalStatus()
@@ -231,7 +255,14 @@ public partial class MainWindow : Window
     {
         if (_cancellation?.IsCancellationRequested == true) return;
         StatusText.Text = $"{_currentTest} · {_elapsed.Elapsed.TotalSeconds:N0} s";
-        if (_renderer != null)
+        var disk = Volatile.Read(ref _diskProgress);
+        if (disk != null)
+        {
+            StatusText.Text += $" · {disk.Phase}";
+            RunProgress.IsIndeterminate = false;
+            RunProgress.Value = 100 * disk.Fraction;
+        }
+        else if (_renderer != null)
         {
             RefreshBitmap();
             RunProgress.Value = 100.0 * _renderer.BucketsDone / Math.Max(1, _renderer.BucketsTotal);
@@ -272,8 +303,10 @@ public partial class MainWindow : Window
         _serialCancellation.Cancel();
         _networkCancellation.Cancel();
         _powerCancellation.Cancel();
+        _stabilityCancellation.Cancel();
         await _powerLoop;
         await _powerWork;
+        await _stabilityWork;
         await _storageWork;
         await _serialWork;
         await _networkWork;
@@ -285,6 +318,8 @@ public partial class MainWindow : Window
         await _telemetryTask;
         await _persistenceWork;
         await _exportWork;
+        await _memoryCleanupWork;
+        await _historyClearWork;
         _readyToClose = true;
         Close();
     }

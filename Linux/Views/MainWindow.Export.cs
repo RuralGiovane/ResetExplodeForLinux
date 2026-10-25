@@ -28,7 +28,7 @@ public partial class MainWindow
 
     private Task StartExportAsync(bool html, ExportKind kind = ExportKind.Benchmarks)
     {
-        if ((_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null) || _exporting || _cancellation != null || _closeWhenStopped) return Task.CompletedTask;
+        if ((_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null) || _exporting || _cleaningMemory || _clearingHistory || _cancellation != null || _closeWhenStopped) return Task.CompletedTask;
         return _exportWork = ExportReportAsync(html, kind);
     }
 

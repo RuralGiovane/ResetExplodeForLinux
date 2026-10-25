@@ -2,13 +2,31 @@
 
 Este documento foi elaborado para guiar desenvolvedores e sistemas de inteligência artificial na migração completa do software **RESET EXPLODE** do ambiente Windows (.NET 8 + WPF + DirectX) para o ecossistema Linux nativo (.NET 8 + Avalonia UI + Vulkan).
 
-### Estado atual — 25/10/2026: entrega aprovada e distribuição proposta
+### Estado atual — 25/10/2026: aceite conjunto e ajustes para commit
+
+Usuário aprovou os roteiros de disco/carregamento e limpeza/EDAC, acrescentando feedback de usabilidade. Aviso de recuperação de RAM em etapas e “Mais detalhes” implementados; controles de execução/cancelamento movidos ao cartão ativo; limpeza separada da sessão e do histórico salvo implementada com confirmação no app, gravação atômica e bloqueios. Revisão de legibilidade dos demais cartões ficou na checklist posterior. Builds/suíte aprovados; ajustes novos ainda não conferidos visualmente pelo usuário. Entrega acumulada preparada para commit, sem push. Distribuição continua por último; próximos módulos de estabilidade/logs/GPU permanecem pendentes.
+
+### Continuação — 25/10/2026: limpeza de RAM e estabilidade EDAC
+
+Usuário solicitou avançar antes da conferência gráfica de disco e pediu botão para liberar memória após os testes. Adicionado LIBERAR MEMÓRIA DOS TESTES: coleta/compactação manual do .NET fora das medições, com histórico preservado, bloqueios de concorrência e espera no fechamento. Iniciada estabilidade com consulta manual EDAC na nova sub-aba, diferenciando erros, zeros e dados indisponíveis. Logs/GPU/PCIe e demais partes do diagnóstico continuam pendentes. Roteiro em [VALIDACAO_ESTABILIDADE_MEMORIA.md](VALIDACAO_ESTABILIDADE_MEMORIA.md); validação gráfica conjunta com disco ainda pendente, por escolha do usuário. Distribuição continua por último.
+
+### Continuação — 25/10/2026: disco e carregamento com I/O direto
+
+Implementados backend Linux x64 com buffers alinhados, O_DIRECT/O_DSYNC, verificação de alinhamento via statx e caminho Btrfs com setor consultado/NoCoW/NoCompress apenas nos arquivos temporários. Disco sequencial/aleatório e pacote/assets integrados à página Benchmark, com cancelamento, limpeza exclusiva, histórico e exportações. Diagnóstico real reduzido aprovado no Btrfs local; tmpfs recusado. Roteiro gráfico e cargas completas pendentes em [VALIDACAO_DISCO.md](VALIDACAO_DISCO.md). Não declara equivalência ao Windows. Distribuição permanece por último.
+
+### Continuação — 25/10/2026: metodologia CPU/RAM
+
+Revisão identificou elementos omitidos na banda de RAM quando threads não dividem o buffer e na cauda do laço de leitura. Corrigidas partições/caudas e cancelamento por blocos; preparação da latência também observa cancelamento. Novos registros/exportações incluem metodologia e parâmetros, com banda `linux-ram-bandwidth-v2`. Roteiro e limites em [VALIDACAO_BENCHMARKS.md](VALIDACAO_BENCHMARKS.md). Usuário confirmou “tudo funciona certinho”, aprovando funcionalmente esta etapa. Séries de medições/repetibilidade e comparação entre plataformas continuam pendentes, sem valores fornecidos. Próxima frente funcional: benchmarks de disco e carregamento com I/O sem cache. Distribuição continua por último.
+
+### Estado atual — 25/10/2026: entrega aprovada; distribuição por último
 
 Usuário aprovou o resumo da Visão geral e solicitou commit da entrega acumulada: diagnóstico de rede, relatórios esquema 3, sub-abas e resumo do sistema. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados; validações manuais registradas. Este estado prevalece sobre as pendências visuais históricas abaixo.
 
-Próxima frente proposta, ainda não implementada: pacote Linux x64 portátil com runtime .NET incluído, comando `reset-explode`, instalador/desinstalador por usuário e entrada `.desktop` com ícone. Validar instalação, atualização, remoção, dependências nativas e funções de hardware em distribuições alvo; posteriormente avaliar AppImage, deb/rpm e automatizar releases. Publicar pelo terminal abre a GUI; uma CLI sem interface seria escopo separado.
+Prioridade corrigida pelo usuário: concluir os itens obrigatórios do porte antes da distribuição. O empacotamento fica por último. Retomar pelas pendências funcionais e de validação abaixo; a proposta de distribuição não é a próxima etapa.
 
-Demais pendências: Maker com hardware conectado; benchmarks completos/metodologia e comparação entre plataformas; build Windows; GPU/Vulkan, disco sem cache, overlay/atalhos globais, perfis/credenciais e ferramentas restantes (otimizador/GameMode e catálogo de aplicativos). Rede: latência sob carga/bufferbloat e metodologia de capacidade máxima ainda não implementadas.
+Distribuição futura, ainda não implementada: pacote Linux x64 portátil com runtime .NET incluído, comando `reset-explode`, instalador/desinstalador por usuário e entrada `.desktop` com ícone. Validar instalação, atualização, remoção, dependências nativas e funções de hardware em distribuições alvo; posteriormente avaliar AppImage, deb/rpm e automatizar releases. Publicar pelo terminal abre a GUI; uma CLI sem interface seria escopo separado.
+
+Demais pendências: Maker com hardware conectado; medições de repetibilidade dos benchmarks e comparação entre plataformas; build Windows; GPU/Vulkan, validação gráfica/completa do disco sem cache, overlay/atalhos globais, perfis/credenciais e ferramentas restantes (otimizador/GameMode e catálogo de aplicativos). Rede: latência sob carga/bufferbloat e metodologia de capacidade máxima ainda não implementadas.
 
 ### Continuação — 25/10/2026: resumo do sistema na Visão geral
 

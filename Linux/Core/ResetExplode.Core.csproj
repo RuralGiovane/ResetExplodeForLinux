@@ -4,8 +4,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Optimize>true</Optimize>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="ResetExplode.SmokeTests" />
     <!-- As mesmas fontes são compiladas nos dois destinos, sem duplicar os algoritmos. -->
     <Compile Include="../../Shared/Benchmarks/BenchRenderer.cs" Link="BenchRenderer.cs" />
     <Compile Include="../../Shared/Benchmarks/GameSimBench.cs" Link="GameSimBench.cs" />

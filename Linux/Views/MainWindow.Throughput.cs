@@ -12,7 +12,7 @@ public partial class MainWindow
 
     private async void StartThroughputTest(object? sender, RoutedEventArgs e)
     {
-        if (_dnsCancellation != null || _closeWhenStopped || !_throughputWork.IsCompleted || _latencyCancellation != null || _cancellation != null || _exporting) return;
+        if (_dnsCancellation != null || _closeWhenStopped || !_throughputWork.IsCompleted || _latencyCancellation != null || _cancellation != null || _exporting || _cleaningMemory || _clearingHistory) return;
         _throughputWork = RunThroughputTestAsync();
         await _throughputWork;
     }
