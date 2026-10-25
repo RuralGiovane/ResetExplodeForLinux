@@ -30,6 +30,16 @@ A suíte passa em .NET 8, incluindo relatórios, persistência, telemetria, arma
 
 No Windows, o projeto original agora está em `Windows/ResetExplode.csproj`; use `dotnet run --project Windows/ResetExplode.csproj` ou `Windows/publicar.bat` para publicação. A reorganização ajusta caminhos e recursos, sem modificar os algoritmos Windows. Build Windows não validado neste ambiente Linux.
 
+Teste ativo de latência, jitter e perda ICMP implementado em 25/10/2026, com build e suíte aprovados; a validação desta etapa foi aprovada pelo usuário, conforme o [roteiro](docs/VALIDACAO_GRAFICA.md).
+
+Exportação de rede HTML/JSON implementada, incluindo inventário e teste ICMP; validação gráfica aprovada pelo usuário em 25/10/2026, conforme o roteiro.
+
+Download/upload HTTP limitado implementado (Cloudflare, 10 MB + 5 MB), com cancelamento e exportação no esquema 2. Validação desta etapa aprovada pelo usuário em 25/10/2026, conforme o roteiro.
+
+Resolução manual de nomes pelo sistema implementada, com exportação no esquema 3. Build e suíte aprovados; validação desta etapa aprovada pelo usuário em 25/10/2026, conforme o roteiro.
+
+Sistema e sensores reorganizado em sete sub-abas dedicadas, com navegação fixa e rolagem por seção. Organização aprovada pelo usuário; Visão geral ampliada com resumo do sistema inspirado no fastfetch. Build e suíte aprovados; resumo aprovado pelo usuário, conforme o roteiro.
+
 ## Continuar o trabalho
 
 Leia o [guia](docs/plano_porte_linux_reset_explode.md), o [registro](docs/REGISTRO_DE_ALTERACOES.md) e o [mapa de pastas](docs/ESTRUTURA.md). Os caminhos citados nas entradas históricas podem anteceder a reorganização; o mapa mostra os destinos atuais.

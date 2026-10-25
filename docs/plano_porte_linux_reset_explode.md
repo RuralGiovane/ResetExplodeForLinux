@@ -2,6 +2,38 @@
 
 Este documento foi elaborado para guiar desenvolvedores e sistemas de inteligência artificial na migração completa do software **RESET EXPLODE** do ambiente Windows (.NET 8 + WPF + DirectX) para o ecossistema Linux nativo (.NET 8 + Avalonia UI + Vulkan).
 
+### Estado atual — 25/10/2026: entrega aprovada e distribuição proposta
+
+Usuário aprovou o resumo da Visão geral e solicitou commit da entrega acumulada: diagnóstico de rede, relatórios esquema 3, sub-abas e resumo do sistema. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados; validações manuais registradas. Este estado prevalece sobre as pendências visuais históricas abaixo.
+
+Próxima frente proposta, ainda não implementada: pacote Linux x64 portátil com runtime .NET incluído, comando `reset-explode`, instalador/desinstalador por usuário e entrada `.desktop` com ícone. Validar instalação, atualização, remoção, dependências nativas e funções de hardware em distribuições alvo; posteriormente avaliar AppImage, deb/rpm e automatizar releases. Publicar pelo terminal abre a GUI; uma CLI sem interface seria escopo separado.
+
+Demais pendências: Maker com hardware conectado; benchmarks completos/metodologia e comparação entre plataformas; build Windows; GPU/Vulkan, disco sem cache, overlay/atalhos globais, perfis/credenciais e ferramentas restantes (otimizador/GameMode e catálogo de aplicativos). Rede: latência sob carga/bufferbloat e metodologia de capacidade máxima ainda não implementadas.
+
+### Continuação — 25/10/2026: resumo do sistema na Visão geral
+
+Usuário aprovou a organização das sub-abas e pediu resumo no estilo fastfetch antes do commit. Implementado cartão com identificação da máquina, distribuição, kernel, arquitetura, CPU/threads, placa-mãe, BIOS, RAM total, GPU/fonte e uso de `/`, preservando CPU/temperatura/RAM ao vivo. Reaproveita coletas existentes; não executa fastfetch nem introduz consultas externas. Build Avalonia/SmokeTests e suíte completa aprovados, sem avisos/erros. Conferência visual do resumo pendente. Próxima etapa combinada com o usuário: commit após este ajuste; nenhum staging ou commit efetuado pelo agente.
+
+### Continuação — 25/10/2026: organização por sub-abas
+
+A pedido do usuário, Sistema e sensores mantém a posição principal no menu e passa a apresentar Visão geral, Computador, Sensores, Rede, Armazenamento, Alimentação e Maker como sub-abas. Cada cartão tem rolagem própria, com cabeçalho/navegação fixos e cabeçalhos que quebram linha. Resultado ICMP reposicionado junto ao teste. Build Avalonia sem avisos/erros e verificação estrutural aprovados; validação visual pendente devido a `XOpenDisplay failed` no ambiente do agente. Serviços e lógica de diagnóstico preservados. Roteiro novo em `VALIDACAO_GRAFICA.md`; aceites anteriores se referem ao layout anterior. Sem staging/commit pelo agente.
+
+### Continuação — 25/10/2026: resolução de nomes
+
+Portada a consulta de nomes presente no módulo Windows: domínio/host explícito, resolução pelo sistema, IPs retornados e duração observada, cancelamento e integração ao fechamento. Normaliza IDN e rejeita IP/URL/porta/caminho antes da consulta. Não mede isoladamente um servidor DNS nem altera configuração. Relatório de rede esquema 3 adiciona resultado/estado/metodologia de resolução. Builds sem avisos/erros e suíte completa aprovados; roteiro gráfico/externo desta etapa aprovado pelo usuário, conforme `VALIDACAO_GRAFICA.md`. Alterações prontas para commit manual. Aceites anteriores permanecem válidos. Bufferbloat, metodologia de capacidade máxima e demais frentes do porte continuam pendentes. Sem staging/commit pelo agente.
+
+### Continuação — 25/10/2026: download/upload HTTP limitado
+
+Implementada medição pontual com Cloudflare: 10 MB download + 5 MB upload sintético, sequenciais, limite de 20 s por etapa, cancelamento e exclusão com ICMP/benchmarks/exportações. Publica somente as duas etapas concluídas; erros e cancelamento descartam taxas parciais/antigas. Relatório de rede evoluiu para esquema 2 com transferência, datas, bytes, duração, taxas e metodologia. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados. Usuário confirmou “tudo validado” para esta etapa; aceite do roteiro gráfico/externo registrado em `VALIDACAO_GRAFICA.md`. Alterações prontas para commit manual. Não implementa saturação da conexão, bufferbloat ou equivalência ao speedtest do site. Aceites anteriores de ICMP/exportação permanecem válidos para suas entregas. Sem staging ou commit pelo agente.
+
+### Continuação — 25/10/2026: exportação de rede
+
+Relatórios HTML/JSON implementados com snapshot do inventário e teste ICMP, datas independentes, estados de erro/cancelamento e aviso sobre IPs/DNS. Builds Avalonia/SmokeTests e suíte completa aprovados, sem avisos/erros; validação gráfica desta etapa aprovada pelo usuário (“tudo validado”), registrada em `VALIDACAO_GRAFICA.md`. Aceite dos testes ICMP abaixo continua válido. Próxima frente funcional de rede: download/upload, com definição de destino e metodologia. Sem staging ou commit pelo agente.
+
+### Continuação — 25/10/2026: testes ativos de rede
+
+Próxima frente implementada: latência ICMP, jitter e perda com destino IPv4/IPv6 explícito, 10 tentativas, cancelamento e integração ao fechamento. Build Avalonia/SmokeTests e suíte completa aprovados. Usuário confirmou “tudo validado”; roteiro de testes ativos em `VALIDACAO_GRAFICA.md` aprovado, incluindo execução, cancelamento, exclusão com benchmarks/exportações e fechamento. Alterações prontas para commit manual. O aceite de 24/10 abaixo se refere à entrega anterior. Download/upload e exportação de rede permanecem futuros; Maker conectado e demais módulos continuam pendentes.
+
 ### Estado final da entrega — 24/10/2026
 
 Usuário aprovou todos os itens de endereços IPv4/IPv6, gateways, DNS, atualização, legibilidade e fechamento/reabertura. Somam-se aos aceites anteriores de SMART administrativo, instância única, inventário de rede, GPU/NVML e roteiro gráfico básico. Builds Avalonia/SmokeTests e suíte completa passaram na última alteração de código; esta finalização atualiza somente documentação.

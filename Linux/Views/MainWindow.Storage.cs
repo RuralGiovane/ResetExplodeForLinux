@@ -36,6 +36,7 @@ public partial class MainWindow
             if (_closeWhenStopped) return;
             _storageInventory = inventory;
             _mountInventory = collected.Mounts;
+            ApplyStorageOverview();
             _inventoryCollectedAt = DateTimeOffset.UtcNow;
             StorageEntries.ItemsSource = inventory.Devices;
             SmartDevice.ItemsSource = inventory.Devices.Where(d => d.Parent == null).ToArray();
@@ -49,6 +50,7 @@ public partial class MainWindow
         {
             _storageInventory = null;
             _mountInventory = null;
+            ApplyStorageOverview();
             _inventoryCollectedAt = null;
             StorageEntries.ItemsSource = null;
             SmartDevice.ItemsSource = null;

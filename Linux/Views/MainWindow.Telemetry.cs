@@ -45,6 +45,7 @@ public partial class MainWindow
                     if (!_telemetryStopped)
                     {
                         SystemEntries.ItemsSource = system.Entries;
+                        ApplySystemOverview(system);
                         _cpuDescription = system.Entries.FirstOrDefault(e => e.Name == "Processador")?.Value ?? "Indisponível";
                     }
                 });
@@ -71,6 +72,8 @@ public partial class MainWindow
                         if (!_telemetryStopped)
                         {
                             _snapshot = null;
+                            OverviewGpuText.Text = "Telemetria indisponível";
+                            if (OverviewEntries.ItemsSource == null) OverviewMachineText.Text = "Resumo do sistema indisponível";
                             SensorEntries.ItemsSource = null;
                             SensorCountText.Text = "Leituras indisponíveis.";
                             TelemetryNoticesText.Text = "";
@@ -96,6 +99,7 @@ public partial class MainWindow
     private void ApplySnapshot(TelemetrySnapshot snapshot)
     {
         _snapshot = snapshot;
+        ApplyGpuOverview(snapshot);
         string load = snapshot.CpuLoadPercent is double value ? $"{value:N1}%" : "indisponível";
         string temperature = snapshot.CpuTemperature is double temp ? $"{temp:N1} °C" : "temperatura indisponível";
         CpuSummaryText.Text = $"CPU · {load} · {temperature}";

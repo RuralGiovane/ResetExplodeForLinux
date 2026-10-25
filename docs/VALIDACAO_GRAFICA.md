@@ -113,3 +113,83 @@ O app mostra os gateways expostos pela API local; não apresenta todas as tabela
 Resultado/mensagem:
 
 Todos os itens desta etapa foram marcados e confirmados pelo usuário. Alterações preparadas para commit manual, conforme a entrega anterior.
+
+
+## Testes ativos de rede — 25/10/2026 (aprovado)
+
+- [X] O cartão de rede mostra destino, TESTAR LATÊNCIA, CANCELAR TESTE e explicação das métricas, com texto legível ao redimensionar.
+- [X] Campo vazio, domínio e URL geram orientação sem travar; um novo teste pode ser iniciado.
+- [X] Testar `127.0.0.1` e, se disponível, `::1`: observar respostas, RTT e jitter; erro de permissão deve aparecer como indisponibilidade, sem perda calculada.
+- [X] Informar o IP real do gateway ou outro destino conhecido: conferir destino, 10 tentativas, métricas e estados. Ausência de resposta não comprova falha da internet.
+- [X] Cancelar durante execução: sem resultado parcial, controles liberados, nova execução possível.
+- [X] Benchmarks e exportações ficam indisponíveis durante teste; teste de rede fica bloqueado durante benchmark/exportação.
+- [X] Fechar durante execução: app encerra após cancelar; reabrir permite novo teste e não restaura resultados antigos.
+
+Resultado: usuário confirmou “tudo validado” para esta etapa. Aceite abrange o roteiro acima; não foram fornecidos valores individuais das medições.
+
+
+## Exportação de rede — 25/10/2026 (aprovado)
+
+- [X] Abrir o app e exportar HTML/JSON antes de executar teste: inventário disponível e nenhum resultado ICMP; conferir aviso de IPs/gateways/DNS.
+- [X] Executar teste até concluir e exportar: conferir destino, contagem, perda, RTT, jitter, estados e datas nos dois formatos.
+- [X] Iniciar novo teste e cancelar: exportação informa cancelamento sem métricas do teste anterior. Repetir com entrada inválida: erro sem métricas antigas.
+- [X] Cancelar o diálogo de salvar: status de cancelamento e botões liberados; nova exportação funciona.
+- [X] Substituir um JSON maior por um relatório menor: arquivo continua JSON válido, sem conteúdo residual.
+- [X] Enquanto exporta, benchmarks/teste ICMP ficam bloqueados; durante teste ICMP/benchmark, exportação de rede fica bloqueada.
+- [X] Fechar durante exportação/diálogo: concluir ou cancelar diálogo e confirmar encerramento sem erro; reabrir normalmente.
+- [X] HTML abre no navegador com conteúdo legível, interfaces, DNS, metodologia e estados indisponíveis claramente apresentados.
+
+Resultado: usuário confirmou “tudo validado” para esta etapa, abrangendo o roteiro de exportação acima.
+
+
+## Download/upload HTTP — 25/10/2026 (aprovado)
+
+- [X] Conferir destino Cloudflare, 10 MB de download + 5 MB de upload sintético, overhead adicional e limite de 20 s por etapa antes de iniciar.
+- [X] Iniciar TESTAR DOWNLOAD / UPLOAD e aguardar: conferir taxas em Mbit/s, 10.000.000/5.000.000 bytes, durações, servidor e horário. Mensagem de erro deve ficar explícita se o serviço não estiver acessível.
+- [X] Exportar HTML/JSON depois do sucesso: conferir mesmas taxas/bytes/durações, metodologia e datas. JSON usa esquema 2 e contém `throughput`; ICMP/inventário continuam disponíveis.
+- [X] Repetir e cancelar durante transferência: sem taxas antigas/parciais, relatório com `throughput: null` e estado de cancelamento. Nova execução funciona.
+- [X] Se possível, testar sem conectividade: erro explícito sem taxa zero fictícia; recuperar conexão e repetir com sucesso.
+- [X] ICMP, benchmarks e exportações ficam bloqueados durante transferência, e transferência fica bloqueada enquanto essas ações rodam.
+- [X] Fechar durante transferência: encerramento após cancelamento, sem travamento; reabrir permite novo teste e não restaura resultados antigos.
+- [X] Redimensionar/rolar o cartão e confirmar legibilidade dos controles, aviso e resultados.
+
+Resultado: usuário confirmou “tudo validado” para o roteiro desta etapa. Cenários condicionais seguem a disponibilidade indicada no roteiro; valores individuais das medições não foram informados.
+
+
+## Resolução de nomes — 25/10/2026 (aprovado)
+
+- [X] Conferir campo de domínio, botões e explicação do resolvedor/cache; abrir a aplicação não inicia consulta.
+- [X] Resolver `localhost` e um domínio conhecido: conferir nome normalizado, endereços e tempo observado. Falha deve ser explícita se o ambiente não resolver.
+- [X] Campo vazio, IP, URL e nome com porta/caminho são rejeitados; corrigir permite nova consulta.
+- [X] Testar nome internacional se disponível: nome ASCII normalizado e resultado/erro legível.
+- [X] Exportar HTML/JSON após sucesso: nome, endereços, datas e duração presentes; JSON esquema 3 com `dnsResolution`, mantendo ICMP/throughput.
+- [X] Nova tentativa inválida ou com falha não exporta a resolução anterior: resultado nulo, estado explícito.
+- [X] Se a consulta durar o suficiente, cancelar/fechar durante execução: sem resultado tardio/parcial, controles liberados ao terminar; reabrir normalmente. Prazo de 5 s solicita cancelamento e depende do resolvedor.
+- [X] Conferir bloqueios recíprocos entre resolução, ICMP, download/upload, benchmarks e exportações, além de legibilidade ao redimensionar.
+
+Resultado: usuário confirmou a validação desta etapa. Cenários condicionais seguem a disponibilidade indicada no roteiro; domínios e valores individuais não foram informados.
+
+
+## Organização em sub-abas — 25/10/2026 (pendente)
+
+- [ ] Abrir Sistema e sensores: Visão geral selecionada, sem a antiga lista longa de cartões.
+- [ ] Acessar Computador, Sensores, Rede, Armazenamento, Alimentação e Maker: cada sub-aba mostra seu cartão e controles.
+- [ ] Redimensionar até 820 × 620 e maximizar: cabeçalhos acessíveis, com quebra de linha quando necessário, sem rolagem horizontal do conteúdo.
+- [ ] Rolar uma seção longa: título e navegação permanecem visíveis. Navegar pelas sub-abas com teclado e mouse, com foco/seleção identificáveis.
+- [ ] Alterar filtro em Sensores e campos em Rede, ir a outra sub-aba/Benchmark e voltar: seleção, campos e resultados preservados durante a sessão.
+- [ ] Na Rede, resultado ICMP aparece junto aos controles de latência; DNS, transferência e exportações continuam acessíveis.
+- [ ] Atualizar inventários e testar uma exportação: diálogos, status e bloqueios continuam funcionando nas respectivas sub-abas.
+- [ ] Durante teste de rede, trocar de sub-aba e voltar para cancelar; ao fechar durante teste, encerramento continua funcionando.
+
+
+## Visão geral com resumo do sistema — 25/10/2026 (aprovado)
+
+Organização das sub-abas aprovada pelo usuário; este roteiro cobre o resumo solicitado em seguida.
+
+- [X] Conferir logo/nome da máquina e sistema, kernel, arquitetura, processador, threads, placa-mãe, BIOS e memória total contra a aba Computador.
+- [X] Conferir GPU/fonte com Sensores; nome do driver genérico não é apresentado como modelo inferido. Indisponibilidade deve ficar explícita.
+- [X] Conferir capacidade/usado em `/` com Armazenamento; atualizar inventário atualiza também o resumo.
+- [X] CPU, temperatura e RAM seguem atualizando; alternar entre sub-abas e Benchmark preserva a navegação e os campos.
+- [X] Conferir legibilidade em janela reduzida e maximizada, com quebra de nomes longos e rolagem do cartão.
+
+Resultado: usuário aprovou o resumo (“ficou perfeito”) e solicitou o commit da entrega. Organização das sub-abas já aprovada anteriormente.

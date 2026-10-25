@@ -333,7 +333,7 @@ O [mapa de pastas](../docs/ESTRUTURA.md) explica a separação entre `Windows/`,
 
 ## Próximas etapas
 
-Validar build, testes e execução gráfica, incluindo o fluxo térmico e NVML em GPU compatível; depois continuar a migração das páginas. Perfis e credenciais da configuração Windows, disco sem cache, GPU/Vulkan, overlay e atalhos globais ainda não foram migrados. Instância única implementada e aprovada graficamente pelo usuário.
+Builds, suíte automatizada, fluxo térmico, GPU/NVML e cenários gráficos das entregas atuais aprovados. Próxima frente proposta: distribuição portátil e instalação por usuário, com comando no terminal e entrada no menu. Ainda pendentes: Maker com dispositivo conectado, metodologia dos benchmarks completos, build Windows, perfis/credenciais, disco sem cache, GPU/Vulkan, overlay, atalhos globais e demais ferramentas Windows. Rede tem inventário, ICMP, transferência HTTP limitada, resolução de nomes e exportação; bufferbloat/capacidade máxima seguem fora da implementação.
 
 ### Autorização da consulta SMART
 
@@ -359,7 +359,7 @@ O cartão REDE · INTERFACES na página Sistema e sensores mostra cada interface
 
 Apresenta estado operacional, carrier, MTU, velocidade reportada do link, duplex e contadores de bytes/pacotes/erros/descartes RX/TX. Contadores preservam inteiros sem sinal de 64 bits e zeros válidos; dados ausentes/inválidos e sentinelas de velocidade ficam indisponíveis. A coleta é sequencial, não atômica, e a remoção de uma interface durante a leitura pode produzir campos indisponíveis. Cada atualização cria um snapshot independente.
 
-O inventário não confirma acesso à internet nem mede throughput. Contadores são acumulados e podem reiniciar; não se somam interfaces virtuais e físicas como tráfego total do computador. Nenhuma consulta externa, configuração de rede, elevação ou teste ativo é executado por esta etapa. Ping/jitter/perda, testes de download/upload e exportação de rede permanecem para etapas posteriores do módulo. Endereços/gateways/DNS estão descritos abaixo. A base Windows `NetworkTest.cs` foi revisada e preservada.
+O inventário não confirma acesso à internet nem mede throughput. Contadores são acumulados e podem reiniciar; não se somam interfaces virtuais e físicas como tráfego total do computador. Nenhuma consulta externa, configuração de rede, elevação ou teste ativo é executado por esta etapa. Teste ICMP, transferência HTTP de download/upload e exportação estão descritos abaixo. Endereços/gateways/DNS estão descritos abaixo. A base Windows `NetworkTest.cs` foi revisada e preservada.
 
 ```bash
 dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --network-only
@@ -377,3 +377,95 @@ DNS aparece separado das interfaces: são as entradas nameserver explícitas de 
 Falha na enumeração de endereços preserva o inventário sysfs e DNS. Cada atualização cria novos dados; o fechamento continua cancelando e aguardando a tarefa. A coleta é sequencial e pode refletir mudanças de configuração durante a leitura. Testes de `NetworkConfigurationChecks` cobrem prefixos, IPv6 com escopo, associação de interfaces, falhas parciais, alterações e snapshots, parsing DNS e indisponibilidade; integram --network-only e a suíte completa.
 
 Referências: [propriedades IP das interfaces (.NET)](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipinterfaceproperties) e [resolv.conf](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+
+
+## Rede: latência, jitter e perda ICMP
+
+No cartão de rede, informe um IPv4 ou IPv6 unicast e clique em TESTAR LATÊNCIA. Domínios e URLs não são aceitos nesta etapa; nenhum destino externo é escolhido automaticamente. IPv6 com escopo numérico é aceito. São 10 tentativas sequenciais com timeout de 2 segundos por tentativa e pausa de 500 ms após cada uma, exceto a última. A duração nominal máxima é aproximadamente 25 segundos, sujeita ao agendamento do sistema.
+
+Latência mínima/média/máxima usa somente respostas `Success`, preservando zero válido. A API fornece RTT em milissegundos inteiros: zero pode representar menos de 1 ms. Jitter é a média das diferenças absolutas entre RTTs de tentativas consecutivas bem-sucedidas; uma tentativa sem resposta interrompe o par. Sem pares válidos, jitter fica indisponível. Perda ICMP é a porcentagem de tentativas sem resposta de sucesso, com contagem dos estados retornados. Bloqueio de ICMP ou ausência de resposta não prova falha da internet, e estes números não medem throughput nem jitter RTP.
+
+Falhas locais de permissão/execução interrompem o teste e exibem erro sem publicar perda ou resultado parcial. Cancelar e fechar a janela solicitam cancelamento e aguardam a tarefa. Benchmarks e exportações ficam bloqueados durante o teste e vice-versa. Atualização do inventário permanece independente. Não há elevação, configuração de rede ou persistência automática. Exportação manual descrita abaixo.
+
+```bash
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --network-only
+# Opt-in: envia pacotes ao endereço informado; Ctrl+C cancela.
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --live-latency 127.0.0.1
+```
+
+Implementação: `Hardware/Network/NetworkLatencyTest.cs`; usa [Ping.SendPingAsync do .NET](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync?view=net-8.0). Testes simulados sem tráfego real integram a suíte padrão. Build Avalonia/SmokeTests e suíte completa aprovados em 25/10/2026; usuário confirmou “tudo validado” para o roteiro desta etapa, incluindo execução, cancelamento, bloqueio de ações concorrentes e fechamento. Valores individuais das medições não foram informados.
+
+Diagnóstico real no ambiente do agente: `--live-latency 127.0.0.1` concluiu com 10 estados `TimedOut`, RTT/jitter indisponíveis. A causa não foi determinada; este resultado valida a conclusão sem respostas, mas não valida recepção ICMP real nem conectividade da máquina do usuário.
+
+
+## Exportar relatório de rede
+
+EXPORTAR REDE HTML/JSON captura o último inventário disponível e o resultado concluído da última tentativa de teste ICMP. Não inicia coleta nem envia pacotes. Nova tentativa limpa o resultado anterior; cancelamento ou erro mantém somente o estado, sem métricas parciais. Atualização do inventário em andamento pode não aparecer no relatório; falha de coleta limpa o inventário exportável e registra o motivo. Coleta posterior bem-sucedida limpa esse erro.
+
+O relatório contém interfaces, métricas como exibidas na UI (textos com unidades/formatação local), IPs, gateways, DNS, avisos, destino e tentativas ICMP. JSON usa `reportType: linux-network`, esquema 3 (inclui transferência HTTP e resolução de nomes), métricas ICMP numéricas, estados das tentativas por nome e valores indisponíveis nulos. RTT de tentativa sem sucesso não é uma medição utilizável, mesmo que a API tenha retornado zero; consulte sempre seu estado. Horários de coleta, conclusão do teste e exportação são separados. HTML independente escapa todos os dados e não carrega recursos externos. As coleções são copiadas antes de gerar o conteúdo.
+
+Os botões informam a presença de endereços de rede no arquivo. Exportação usa o diálogo existente, bloqueia benchmarks e testes ICMP simultâneos e aguarda conclusão no fechamento. Cancelar o diálogo preserva os dados da sessão. Erro de escrita pode deixar arquivo incompleto. Os relatórios incluem o último resultado concluído de transferência HTTP, quando disponível, sem histórico de testes.
+
+Implementação em `Hardware/Reports/NetworkReportBuilder.cs`. Testes de snapshot, escaping, identidade, datas, métricas, perda total, ausência, inventário vazio e falha integram `--report-only` e a suíte completa. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados em 25/10/2026. Usuário confirmou “tudo validado” para a exportação de rede em 25/10/2026: arquivos HTML/JSON, estados sem resultado, cancelamento do diálogo, substituição, bloqueios e fechamento aprovados conforme o roteiro versionado.
+
+
+## Download / upload HTTP limitado
+
+Em Sistema e sensores → Rede, TESTAR DOWNLOAD / UPLOAD acessa `https://speed.cloudflare.com`: GET `__down?bytes=10000000`, seguido de POST `__up` com 5.000.000 bytes sintéticos gerados em memória. Os endpoints são os [documentados pelo projeto Cloudflare Speedtest](https://github.com/cloudflare/speedtest/blob/main/README.md). A tela identifica o destino e o consumo antes do clique; Cloudflare recebe o IP da conexão, conforme seu [aviso de privacidade](https://speed.cloudflare.com/). Nenhuma transferência ocorre ao abrir a aplicação ou exportar um relatório.
+
+Uma requisição por etapa, sem aquecimento, paralelismo ou repetição automática pela aplicação. Download lê até 10.000.000 bytes do corpo e exige esse total; upload exige escrita completa do corpo e resposta HTTP de sucesso. A resposta do upload é lida até 4 KiB. Cabeçalhos de resposta são limitados a 16 KiB pelo cliente. Redirecionamentos, cookies e descompressão automática ficam desativados; respostas comprimidas ou comprimentos declarados inesperados são rejeitados. Solicita ausência de cache. O payload de 15 MB não inclui overhead, retransmissões ou respostas; não representa limite exato de bytes na interface de rede.
+
+Cada etapa tem limite de 20 segundos abrangendo envio, cabeçalhos e leitura do corpo; o tempo nominal total é até 40 segundos, sujeito ao agendamento/encerramento do sistema. Cancelamento cobre envio e leitura e o fechamento aguarda a tarefa. Erro HTTP, resposta incompleta, timeout ou cancelamento descarta ambas as taxas, inclusive download já concluído. Nova execução limpa apenas o resultado anterior de transferência; ICMP é independente. Benchmarks, ICMP e exportações ficam bloqueados durante a transferência e vice-versa.
+
+Mbit/s = bytes do corpo × 8 / segundos / 1.000.000. Cronômetro monotônico por etapa inclui conexão/DNS/TLS quando necessários, espera do servidor e leitura da resposta. Não desconta latência nem estima capacidade máxima. Transferências pequenas e sequenciais podem subestimar links rápidos; a medição não reproduz a metodologia do site Cloudflare, não mede bufferbloat e não diagnostica o provedor.
+
+Relatórios `linux-network` agora usam esquema 2, com campos `throughput`, `throughputStatus` e `throughputMethodology`. Preservam os campos anteriores de inventário e ICMP; a transferência concluída contém servidor, datas inicial/final, bytes, duração e taxas numéricas. Ausência, erro e cancelamento mantêm `throughput: null` e estado explícito. Sem persistência automática.
+
+```bash
+# Simulado, sem tráfego externo:
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --network-only
+# Opcional: envia e recebe dados reais com a Cloudflare; Ctrl+C cancela.
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --live-throughput
+```
+
+Implementação: `Hardware/Network/NetworkThroughputTest.cs`, `Views/MainWindow.Throughput.cs` e `Hardware/Reports/NetworkReportBuilder.cs`. Testes HTTP simulados validam destino, método, volume, ordem, cálculo, erros HTTP, redirecionamento, corpo truncado, compressão, resposta antecipada de upload, timeout, cancelamento durante download/upload e liberação de streams. Usuário confirmou “tudo validado” para o roteiro de transferência real e interação gráfica em 25/10/2026, incluindo resultados, exportação, cancelamento, bloqueios e fechamento. Valores individuais das medições não foram informados; nenhum teste de volume externo foi executado pelo agente.
+
+Validação de 25/10/2026: builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados; `git diff --check` aprovado.
+
+
+## Resolução de nomes pelo sistema
+
+Em Sistema e sensores → Rede, informe um domínio/host e clique em RESOLVER NOME. Campo vazio, IP, URL, porta, caminho e rótulos inválidos são rejeitados antes da consulta. Nomes internacionais são normalizados com IDN para ASCII; ponto final explícito é preservado. Nomes simples, como `localhost`, seguem a resolução local configurada. Não há domínio padrão nem consulta automática.
+
+Uma chamada a [Dns.GetHostAddressesAsync](https://learn.microsoft.com/en-us/dotnet/api/system.net.dns.gethostaddressesasync?view=net-8.0) retorna os endereços observados, IPv4/IPv6 com escopo quando presente, deduplicados em ordem de retorno. Cronômetro monotônico mede a duração da chamada. Cache, hosts, NSS, busca por sufixos e VPN podem influenciar o resultado. Não identifica o servidor que respondeu, não testa individualmente os DNS de resolv.conf, não comprova conectividade com os IPs e não altera configuração.
+
+O token solicita cancelamento após 5 segundos; cancelamento manual/fechamento usa o mesmo fluxo. A tarefa é aguardada antes de liberar a execução/fechar; o encerramento efetivo depende do suporte da API e do resolvedor do sistema, podendo ultrapassar o prazo. Resultado que chega após cancelamento é descartado. Resposta vazia é distinta de exceção, cancelamento ou ausência de consulta. Nova tentativa limpa somente o resultado anterior de resolução. ICMP, throughput, benchmarks e exportações são mutuamente exclusivos com esta consulta.
+
+Relatórios `linux-network` passam ao esquema 3: adicionam `dnsResolution`, `dnsResolutionStatus` e `dnsMethodology`, mantendo os campos anteriores. Exportam nome normalizado, endereços copiados, início/conclusão e tempo em milissegundos. Falha/cancelamento mantém resultado nulo e estado explícito; pode ser preservado resultado anterior de ICMP ou transferência, com suas próprias datas. HTML escapa os textos. O nome consultado também passa a integrar o relatório.
+
+```bash
+# Testes simulados sem consultas externas:
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --network-only
+# Consulta real opt-in pelo resolvedor local:
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --live-dns localhost
+```
+
+Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados em 25/10/2026. Testes cobrem validação/IDN, IPv4/IPv6/escopo, deduplicação/snapshot, duração, ausência, falha, timeout, cancelamento e relatório. Usuário confirmou a validação do roteiro desta etapa em 25/10/2026, incluindo consulta externa, entradas inválidas, exportação e controles gráficos. Cenários condicionais seguem a disponibilidade indicada; domínios e valores individuais não foram informados.
+
+Consulta real `--live-dns localhost` aprovada no ambiente do agente: retornou `::1` e `127.0.0.1`, em 14,29 ms observados. Isso valida integração com o resolvedor local, sem comprovar DNS externo. CLI recompilado sem avisos/erros após inclusão do diagnóstico. `git diff --check` aprovado.
+
+
+## Navegação de Sistema e sensores
+
+Sistema e sensores permanece como seção principal no menu lateral. O conteúdo agora se divide em sete sub-abas: Visão geral, Computador, Sensores, Rede, Armazenamento, Alimentação e Maker. Cada cartão possui sua própria área de rolagem; título, status de telemetria e navegação ficam fora dela. Cabeçalhos das sub-abas podem quebrar em linhas conforme a largura da janela.
+
+Visão geral é a seleção inicial. Trocar de seção não recria os controles nem inicia consultas ativas; seleções, campos e resultados continuam nos mesmos objetos durante a sessão. Ao voltar de Benchmark, a sub-aba selecionada permanece. O resultado ICMP e sua explicação agora aparecem junto aos controles de latência, antes do bloco de download/upload. Os serviços e regras de exclusão/cancelamento não foram modificados.
+
+Build Avalonia aprovado, sem avisos/erros; verificação estrutural confirmou sete cartões em sete sub-abas e preservação de todos os controles nomeados/eventos. A execução gráfica no ambiente do agente falhou com `XOpenDisplay failed`; navegação, dimensionamento e interação aguardam o roteiro gráfico do usuário. Não foram criados testes que apenas repetem a estrutura visual.
+
+
+### Resumo da Visão geral
+
+O cartão inicial apresenta um resumo inspirado no fastfetch, com logo, nome da máquina, distribuição, kernel, arquitetura do processo, CPU, threads disponíveis, placa-mãe, BIOS e memória total. Usa os dados existentes de `LinuxSystemInfoCollector`; não executa fastfetch nem instala dependências. GPU usa a identificação/fonte reportada pelos sensores atuais, sem inferir modelo a partir de driver genérico. O espaço de `/` vem da última coleta de montagens, sem somar volumes e sem confundir essa capacidade com a de todos os discos.
+
+CPU, temperatura e memória permanecem ao vivo. Campos ausentes têm estado explícito; erro de telemetria limpa identificação GPU e erro de armazenamento limpa capacidade do resumo. A seleção das sub-abas continua preservada. Build Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados; resumo aprovado pelo usuário, que solicitou o commit da entrega.

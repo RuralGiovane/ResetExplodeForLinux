@@ -2,6 +2,75 @@
 
 Este arquivo acompanha a migração construída a partir do projeto Windows, agora no fork `ResetExplodeForLinux/` (anteriormente `ResetExplode/`). O nome da aplicação permanece `ResetExplode`. Para cada alteração, registrar data, arquivos afetados, o que mudou, motivo, validação e pendências. Distinguir trabalho planejado de funcionalidades implementadas e verificadas.
 
+## 2026-10-25 — Aceite final do resumo e commit da entrega
+
+Usuário aprovou o resumo (“ficou perfeito”) e solicitou commit, além de discutir distribuição como aplicativo instalável/portátil. Aceite registrado na checklist e estado atual atualizado. Entrega reúne ICMP, throughput HTTP limitado, resolução de nomes, relatórios de rede esquema 3, sub-abas e Visão geral. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados na última implementação; esta etapa altera somente documentação e prepara o commit solicitado. Nenhum push solicitado.
+
+Distribuição registrada como próxima frente proposta: runtime incluído, pacote portátil, comando e integração ao menu com instalador/desinstalador por usuário. Nenhum empacotamento foi implementado nesta entrega.
+
+## 2026-10-25 — Visão geral com resumo do sistema
+
+Usuário aprovou a organização em sub-abas e pediu enriquecer Visão geral no estilo fastfetch antes do commit. `MainWindow.axaml` agora inclui logo/nome da máquina, tabela compacta com sistema/kernel/arquitetura/CPU/threads/placa-mãe/BIOS/RAM, GPU/fonte e espaço usado na raiz, além de leituras ao vivo. `MainWindow.Overview.cs` projeta dados já coletados, com campos indisponíveis explícitos; `MainWindow.Telemetry.cs` e `MainWindow.Storage.cs` atualizam o resumo nos mesmos ciclos existentes e limpam valores dinâmicos quando há erro. Não executa programas externos nem adiciona coleta.
+
+`bash Linux/validate.sh` aprovado: builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovada. `git diff --check` aprovado. Conferência visual do novo cartão pendente na sessão do usuário; limitação de display registrada na entrega anterior permanece. Próxima etapa combinada é commit após o ajuste; sem staging, commit ou push pelo agente.
+
+## 2026-10-25 — Sub-abas de Sistema e sensores
+
+Solicitação do usuário: reduzir a página longa e dedicar uma sub-aba a cada cartão, mantendo Sistema e sensores como seção principal. `MainWindow.axaml` agora usa Grid com cabeçalho fixo e TabControl: Visão geral, Computador, Sensores, Rede, Armazenamento, Alimentação e Maker. Cada TabItem contém o cartão original em ScrollViewer próprio; WrapPanel permite quebra dos cabeçalhos. `Styles/Theme.axaml` ajusta tipografia/espaçamento e destaque da seleção. Resultado ICMP e metodologia movidos para junto dos controles de latência.
+
+Preservados nomes, eventos, bindings e serviços existentes; nenhuma coleta ou teste ativo novo é disparado pela navegação. Build Avalonia com --no-restore aprovado, zero avisos/erros. Comparação XML com o estado anterior confirmou todos os controles nomeados/atributos preservados, sem duplicidade, e sete cartões em sete sub-abas. `git diff --check` aprovado. Tentativa gráfica com estado/configuração temporários falhou em `XOpenDisplay failed`; roteiro visual pendente. Não reexecutada a suíte de lógica, pois esta entrega altera somente apresentação. CLI do Superdesign não concluiu inicialização e foi interrompido; reorganização realizada diretamente no Avalonia, sem artefato remoto.
+
+## 2026-10-25 — Aceite da resolução de nomes
+
+Usuário confirmou a validação do roteiro de resolução de nomes: consulta externa, entradas inválidas, exportação HTML/JSON esquema 3 e controles gráficos. Cenários condicionais (IDN, cancelamento/fechamento durante consulta) seguem a disponibilidade indicada no roteiro; domínios e valores individuais não foram informados. Checklists local/versionada, READMEs e plano atualizados. Este aceite substitui a pendência de validação do usuário registrada na implementação abaixo.
+
+Atualização somente documental; builds sem avisos/erros, suíte completa e consulta local real já aprovados na implementação anterior. Alterações prontas para commit manual, sem staging, commit ou push pelo agente. Bufferbloat, metodologia de capacidade máxima e demais frentes do porte permanecem pendentes.
+
+## 2026-10-25 — Resolução de nomes e relatório esquema 3
+
+Adicionados `NetworkDnsTest`, `MainWindow.Dns.cs`, controles manuais e diagnóstico opt-in `--live-dns`. Consulta pelo resolvedor do sistema com nome explícito/IDN, relógio monotônico, IPv4/IPv6 deduplicados e token de cancelamento após 5 s. Encerramento efetivo depende do resolvedor; tarefa aguardada no fechamento. Cache/hosts/NSS/VPN não são confundidos com medição isolada de servidor DNS. Falha/cancelamento limpa resultados antigos e não publica resultado parcial; sem configuração de DNS ou consulta automática.
+
+Relatório de rede esquema 3 inclui resolução, estado, metodologia e cópia de endereços; HTML/JSON preservam demais resultados com datas próprias. Bloqueios recíprocos com ICMP/throughput/benchmarks/exportação. Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados, incluindo testes simulados de entrada, IDN, respostas, erros, timeout, cancelamento e exportação. Consulta real `--live-dns localhost` aprovada no ambiente do agente: retornou `::1` e `127.0.0.1`, em 14,29 ms observados. Isso valida integração com o resolvedor local, sem comprovar DNS externo. CLI recompilado sem avisos/erros após inclusão do diagnóstico. Interação gráfica e resolução externa aguardam validação do usuário.
+
+## 2026-10-25 — Aceite de download/upload HTTP
+
+Usuário confirmou “tudo validado” para o roteiro de download/upload: transferência real, resultados, exportação HTML/JSON esquema 2, cancelamento, bloqueios, fechamento e apresentação. Cenários condicionais seguem a disponibilidade indicada no roteiro; valores individuais das medições não foram informados. Checklists local/versionada, READMEs e plano atualizados. Este aceite substitui a pendência de validação do usuário registrada na implementação abaixo; não altera o registro de que o agente não executou teste de volume externo.
+
+Atualização somente documental; builds sem avisos/erros e suíte completa aprovados na implementação anterior. Alterações prontas para commit manual, sem staging, commit ou push pelo agente. Permanecem fora desta entrega bufferbloat, medição de capacidade máxima, Maker conectado, build Windows e demais módulos pendentes do porte.
+
+## 2026-10-25 — Download/upload HTTP e relatório de rede esquema 2
+
+Novo `NetworkThroughputTest`: Cloudflare, GET de 10 MB e POST de 5 MB sintéticos, sequenciais, timeout de 20 s por etapa, duração monotônica, taxa em Mbit/s. Exige corpo completo e sucesso HTTP, rejeita compressão e tamanhos declarados inesperados; sem redirecionamento/cookies. Upload contabilizado apenas após envio completo e resposta de sucesso. Cancelamento, falha ou timeout descarta as duas medições.
+
+`MainWindow.Throughput.cs` e cartão de rede: destino/consumo explícitos, início manual, cancelamento, exclusão com ICMP/benchmarks/exportações e espera no fechamento. Novo teste limpa a transferência anterior, preservando ICMP. `NetworkReportBuilder` esquema 2 adiciona resultado e estado HTTP com bytes/duração/taxas, datas e metodologia. Testes simulados e diagnóstico opt-in `--live-throughput` adicionados. Servidor público e roteiro gráfico ainda não validados nesta etapa; suíte não envia tráfego real. `bash Linux/validate.sh` aprovado: builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovada. A primeira execução encontrou uma expectativa de teste que não considerava a codificação HTML do acento; expectativa corrigida e suíte reexecutada com sucesso. `git diff --check` aprovado.
+
+## 2026-10-25 — Aceite da exportação de rede
+
+Usuário confirmou “tudo validado” para o roteiro de exportação HTML/JSON de rede: conteúdo, estados sem resultado, cancelamento, substituição de arquivo, exclusão com testes/benchmarks e fechamento. Checklist marcada nas cópias local e versionada; READMEs e plano atualizados. Este aceite substitui a pendência gráfica registrada na implementação abaixo.
+
+Atualização somente documental; builds e suíte completa aprovados na implementação anterior. Alterações prontas para commit manual, sem staging, commit ou push pelo agente. Próxima frente funcional de rede: testes de download/upload, com definição de destino e metodologia.
+
+## 2026-10-25 — Exportação de rede HTML/JSON
+
+Implementados `NetworkReportBuilder`, botões e integração ao diálogo de exportação. Snapshot independente de interfaces/métricas, DNS, avisos e resultado ICMP, com datas separadas e esquema JSON `linux-network` versão 1. HTML escapa textos e contém metodologia/limites das métricas. Aviso junto aos botões informa a inclusão de IPs, gateways, DNS e destino.
+
+Estado da sessão preserva inventário e teste concluído; nova tentativa limpa o teste anterior. Falha/cancelamento não exporta métricas antigas ou parciais. Falha da coleta limpa inventário e preserva mensagem, sucesso posterior limpa erro. Exportação mantém exclusão com benchmarks/teste ICMP e espera no fechamento. Apresentação, diálogos, substituição de arquivo e fechamento aguardam validação gráfica do usuário. Testes automatizados adicionados para dados, snapshot, escaping e estados sem resultado. `bash Linux/validate.sh` aprovado: builds Avalonia/SmokeTests com zero avisos/erros e suíte completa aprovada. `git diff --check` aprovado.
+
+## 2026-10-25 — Aceite dos testes ativos de rede
+
+Usuário confirmou “tudo validado” após executar o roteiro da entrega de latência, jitter e perda ICMP. Checklist marcada nas cópias local e versionada; README principal/Linux e plano atualizados. Valores individuais das medições não foram informados. Este aceite substitui a pendência de validação do usuário registrada na implementação abaixo; o diagnóstico de timeouts do ambiente do agente permanece como registro histórico.
+
+Atualização somente documental; builds e suíte aprovados na implementação anterior. Alterações prontas para commit manual, sem staging, commit ou push pelo agente. Download/upload e exportação de rede permanecem etapas futuras.
+
+## 2026-10-25 — Testes ativos de latência, jitter e perda ICMP
+
+Implementados serviço `NetworkLatencyTest`, cartão integrado ao inventário, destino IPv4/IPv6 explícito, 10 tentativas, timeout de 2 s e intervalo de 500 ms. RTT mín./médio/máx., jitter entre tentativas consecutivas com sucesso, perda ICMP e estados retornados. Erros locais e cancelamento não publicam resultados parciais. Exclusão com benchmarks/exportações, cancelamento e espera no fechamento. Diagnóstico opt-in `--live-latency <IP>`; suíte padrão não envia pacotes.
+
+Builds Avalonia/SmokeTests sem avisos/erros e suíte completa aprovados. Testes simulados cobrem resultados mistos, zero, perda total, jitter sem atravessar falhas, entradas inválidas, pré-cancelamento, cancelamento durante envio/pausa e erro local. Apresentação, interação gráfica e destinos externos ainda pendentes. Sem staging, commit ou push pelo agente.
+
+
+Diagnóstico real no ambiente do agente: `--live-latency 127.0.0.1` concluiu com 10 estados `TimedOut`, RTT/jitter indisponíveis. A causa não foi determinada; este resultado valida a conclusão sem respostas, mas não valida recepção ICMP real nem conectividade da máquina do usuário.
+
 ## 2026-10-24 — Aceite final e preparação para commit manual
 
 Usuário marcou e confirmou toda a checklist de endereços IPv4/IPv6, gateways, DNS, atualização, legibilidade e fechamento/reabertura. Fluxo SMART administrativo, instância única, inventário de rede, GPU/NVML e cenários gráficos anteriores também aprovados. Maker com hardware conectado continua pendente por falta de dispositivo.

@@ -16,8 +16,78 @@ if (args.Contains("--network-only"))
 {
     NetworkChecks.Run();
     NetworkConfigurationChecks.Run();
+    await NetworkLatencyChecks.RunAsync();
+    await NetworkThroughputChecks.RunAsync();
+    await NetworkDnsChecks.RunAsync();
     return;
 }
+// Opt-in explícito: consome 10 MB de download + 5 MB de upload, mais overhead.
+if (args.Length == 1 && args[0] == "--live-throughput")
+{
+    using var cancellation = new CancellationTokenSource();
+    ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+    Console.CancelKeyPress += cancel;
+    Console.WriteLine("Cloudflare: 10 MB download + 5 MB upload sintético; até 20 s/etapa. Ctrl+C cancela.");
+    try
+    {
+        using var http = NetworkThroughputTest.CreateClient();
+        var result = await new NetworkThroughputTest(http).RunAsync(cancellation.Token);
+        Console.WriteLine($"Download: {result.Download.MegabitsPerSecond:N2} Mbit/s; {result.Download.Bytes} bytes em {result.Download.Seconds:N3} s");
+        Console.WriteLine($"Upload: {result.Upload.MegabitsPerSecond:N2} Mbit/s; {result.Upload.Bytes} bytes em {result.Upload.Seconds:N3} s");
+        Console.WriteLine(result.Methodology);
+    }
+    catch (OperationCanceledException) { Console.Error.WriteLine("Teste cancelado, sem resultado parcial."); Environment.ExitCode = 130; }
+    catch (Exception ex) { Console.Error.WriteLine($"Teste indisponível: {ex.GetBaseException().Message}"); Environment.ExitCode = 1; }
+    finally { Console.CancelKeyPress -= cancel; }
+    return;
+}
+
+if (args.Contains("--live-dns"))
+{
+    if (args.Length != 2 || args[0] != "--live-dns")
+    {
+        Console.Error.WriteLine("Uso: --live-dns <domínio/host>"); Environment.ExitCode = 2; return;
+    }
+    using var cancellation = new CancellationTokenSource();
+    ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+    Console.CancelKeyPress += cancel;
+    try
+    {
+        var result = await new NetworkDnsTest().RunAsync(args[1], cancellation.Token);
+        Console.WriteLine($"{result.Host}: {result.ElapsedMilliseconds:N2} ms; {result.Addresses.Count} endereço(s)");
+        foreach (string address in result.Addresses) Console.WriteLine(address);
+        Console.WriteLine(result.Methodology);
+    }
+    catch (OperationCanceledException) { Console.Error.WriteLine("Resolução cancelada."); Environment.ExitCode = 130; }
+    catch (Exception ex) { Console.Error.WriteLine($"Resolução indisponível: {ex.GetBaseException().Message}"); Environment.ExitCode = 1; }
+    finally { Console.CancelKeyPress -= cancel; }
+    return;
+}
+
+if (args.Contains("--live-latency"))
+{
+    if (args.Length != 2 || args[0] != "--live-latency")
+    {
+        Console.Error.WriteLine("Uso: --live-latency <IPv4 ou IPv6>");
+        Environment.ExitCode = 2;
+        return;
+    }
+    using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+    ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+    Console.CancelKeyPress += cancel;
+    try
+    {
+        var result = await new NetworkLatencyTest().RunAsync(args[1], cancellation.Token);
+        Console.WriteLine($"{result.Target}: {result.Received}/{result.Probes.Count} respostas; perda ICMP {result.LossPercent:N1}%");
+        Console.WriteLine($"RTT médio: {result.AverageMs?.ToString("N1") ?? "indisponível"} ms; jitter: {result.JitterMs?.ToString("N1") ?? "indisponível"} ms");
+        foreach (var group in result.Probes.GroupBy(p => p.Status)) Console.WriteLine($"{group.Key}: {group.Count()}");
+    }
+    catch (OperationCanceledException) { Console.Error.WriteLine("Teste cancelado."); Environment.ExitCode = 130; }
+    catch (Exception ex) { Console.Error.WriteLine($"Teste indisponível: {ex.GetBaseException().Message}"); Environment.ExitCode = 1; }
+    finally { Console.CancelKeyPress -= cancel; }
+    return;
+}
+
 if (args.Contains("--live-network"))
 {
     var inventory = new LinuxNetworkCollector(new LinuxFiles()).Collect();
@@ -107,6 +177,7 @@ if (args.Contains("--report-only"))
     StorageReportChecks.Run();
     PowerReportChecks.Run();
     SerialReportChecks.Run();
+    NetworkReportChecks.Run();
     return;
 }
 if (args.Contains("--storage-only"))
@@ -140,6 +211,9 @@ if (args.Contains("--live-telemetry"))
 
 NetworkChecks.Run();
 NetworkConfigurationChecks.Run();
+await NetworkLatencyChecks.RunAsync();
+await NetworkThroughputChecks.RunAsync();
+await NetworkDnsChecks.RunAsync();
 await SingleInstanceChecks.RunAsync();
 await SmartChecks.RunAsync();
 await SmartProcessChecks.RunAsync();
@@ -148,6 +222,7 @@ ReportChecks.Run();
 StorageReportChecks.Run();
 PowerReportChecks.Run();
 SerialReportChecks.Run();
+NetworkReportChecks.Run();
 await ThermalChecks.RunAsync();
 
 static void Check(bool condition, string message)

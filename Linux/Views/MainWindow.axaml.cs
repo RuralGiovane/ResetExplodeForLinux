@@ -61,7 +61,7 @@ public partial class MainWindow : Window
 
     private Task RunRenderAsync(int threads)
     {
-        if (_cancellation != null || _closeWhenStopped || _exporting) return Task.CompletedTask;
+        if (_cancellation != null || _closeWhenStopped || _exporting || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return Task.CompletedTask;
         _renderer = new BenchRenderer();
         var renderer = _renderer;
         return RunAsync("cpu-render", $"Path tracing · {threads} thread(s)", ct =>
@@ -74,7 +74,7 @@ public partial class MainWindow : Window
 
     private async void RunSimulation(object? sender, RoutedEventArgs e)
     {
-        if (_cancellation != null || _closeWhenStopped || _exporting) return;
+        if (_cancellation != null || _closeWhenStopped || _exporting || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
         _simulation = new GameSimBench();
         var simulation = _simulation;
         await RunAsync("cpu-simulation", "Simulação de jogo", ct =>
@@ -103,7 +103,7 @@ public partial class MainWindow : Window
     private async Task RunAsync(string test, string name, Func<CancellationToken, BenchmarkMeasurement> work,
         Dictionary<string, string>? parameters = null)
     {
-        if (_cancellation != null || _closeWhenStopped || _exporting) return;
+        if (_cancellation != null || _closeWhenStopped || _exporting || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
         bool thermalEnabled = ThermalEnabled.IsChecked == true;
         double thermalLimit = (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit);
         int started = 0;
@@ -189,14 +189,18 @@ public partial class MainWindow : Window
     private void SetRunning(bool running)
     {
         SingleButton.IsEnabled = MultiButton.IsEnabled = SimButton.IsEnabled =
-            LatencyButton.IsEnabled = BandwidthButton.IsEnabled = !running && !_exporting;
+            LatencyButton.IsEnabled = BandwidthButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
+        StartNetworkTestButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null && !_closeWhenStopped;
+        StartDnsButton.IsEnabled = StartNetworkTestButton.IsEnabled;
+        StartThroughputButton.IsEnabled = StartNetworkTestButton.IsEnabled;
         CancelButton.IsEnabled = running;
-        ThermalEnabled.IsEnabled = ThermalLimit.IsEnabled = !running && !_exporting;
-        SaveSettingsButton.IsEnabled = RetrySaveButton.IsEnabled = !running && !_exporting;
+        ThermalEnabled.IsEnabled = ThermalLimit.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
+        SaveSettingsButton.IsEnabled = RetrySaveButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
         ExportHtmlButton.IsEnabled = ExportJsonButton.IsEnabled =
             StorageHtmlButton.IsEnabled = StorageJsonButton.IsEnabled =
             PowerHtmlButton.IsEnabled = PowerJsonButton.IsEnabled =
-            SerialHtmlButton.IsEnabled = SerialJsonButton.IsEnabled = !running && !_exporting;
+            NetworkHtmlButton.IsEnabled = NetworkJsonButton.IsEnabled =
+            SerialHtmlButton.IsEnabled = SerialJsonButton.IsEnabled = !running && !_exporting && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
     }
 
     private void UpdateThermalStatus()
@@ -273,6 +277,9 @@ public partial class MainWindow : Window
         await _storageWork;
         await _serialWork;
         await _networkWork;
+        await _latencyWork;
+        await _throughputWork;
+        await _dnsWork;
         await _smartWork;
         // A UI continua processando os callbacks pendentes até a coleta liberar a NVML.
         await _telemetryTask;

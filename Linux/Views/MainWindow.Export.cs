@@ -7,7 +7,7 @@ namespace ResetExplode;
 
 public partial class MainWindow
 {
-    private enum ExportKind { Benchmarks, Storage, Power, Serial }
+    private enum ExportKind { Benchmarks, Storage, Power, Serial, Network }
     private bool _exporting;
     private Task _exportWork = Task.CompletedTask;
 
@@ -23,9 +23,12 @@ public partial class MainWindow
     private async void ExportSerialHtml(object? sender, RoutedEventArgs e) => await StartExportAsync(true, ExportKind.Serial);
     private async void ExportSerialJson(object? sender, RoutedEventArgs e) => await StartExportAsync(false, ExportKind.Serial);
 
+    private async void ExportNetworkHtml(object? sender, RoutedEventArgs e) => await StartExportAsync(true, ExportKind.Network);
+    private async void ExportNetworkJson(object? sender, RoutedEventArgs e) => await StartExportAsync(false, ExportKind.Network);
+
     private Task StartExportAsync(bool html, ExportKind kind = ExportKind.Benchmarks)
     {
-        if (_exporting || _cancellation != null || _closeWhenStopped) return Task.CompletedTask;
+        if ((_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null) || _exporting || _cancellation != null || _closeWhenStopped) return Task.CompletedTask;
         return _exportWork = ExportReportAsync(html, kind);
     }
 
@@ -36,6 +39,7 @@ public partial class MainWindow
             ExportKind.Storage => StorageExportStatusText,
             ExportKind.Power => PowerExportStatusText,
             ExportKind.Serial => SerialExportStatusText,
+            ExportKind.Network => NetworkExportStatusText,
             _ => ExportStatusText
         };
         _exporting = true;
@@ -68,12 +72,19 @@ public partial class MainWindow
                 var report = SerialReportBuilder.Capture(version, _serialInventory, _serialCollectionError);
                 content = await Task.Run(() => html ? SerialReportBuilder.Html(report) : SerialReportBuilder.Json(report));
             }
+            else if (kind == ExportKind.Network)
+            {
+                var report = NetworkReportBuilder.Capture(version, _networkInventory, _networkCollectionError,
+                    _networkLatencyResult, _networkLatencyCompletedAt, _networkLatencyStatus,
+                    _networkThroughputResult, _networkThroughputStatus, _networkDnsResult, _networkDnsStatus);
+                content = await Task.Run(() => html ? NetworkReportBuilder.Html(report) : NetworkReportBuilder.Json(report));
+            }
             else
             {
                 var report = BenchmarkReportBuilder.Capture(_history, _pendingHistory, version);
                 content = await Task.Run(() => html ? BenchmarkReportBuilder.Html(report) : BenchmarkReportBuilder.Json(report));
             }
-            string category = kind switch { ExportKind.Storage => "armazenamento", ExportKind.Power => "alimentacao", ExportKind.Serial => "maker", _ => "benchmarks" };
+            string category = kind switch { ExportKind.Storage => "armazenamento", ExportKind.Power => "alimentacao", ExportKind.Serial => "maker", ExportKind.Network => "rede", _ => "benchmarks" };
             string extension = html ? "html" : "json";
             using var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
