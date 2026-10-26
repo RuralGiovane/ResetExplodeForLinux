@@ -9,6 +9,27 @@ if (args.Length == 1 && args[0] == "--memory-cleanup-only")
 if (args.Length == 1 && args[0] == "--stability-only")
 {
     EdacChecks.Run();
+    await KernelLogChecks.RunAsync();
+    KernelLogClassificationChecks.Run();
+    StabilitySessionChecks.Run();
+    StabilityReportChecks.Run();
+    return;
+}
+if (args.Length == 1 && args[0] == "--live-stability-session")
+{
+    var baseline = StabilitySession.Capture();
+    var current = StabilitySession.Capture();
+    if (baseline.BootId == null || baseline.BootId != current.BootId || current.StartMicroseconds < baseline.EndMicroseconds)
+        throw new InvalidOperationException("Identificação/relógio da sessão indisponível.");
+    Console.WriteLine($"Relógio monotônico e mesma inicialização confirmados. Controladores EDAC: {current.Edac.Controllers.Count}.");
+    Console.WriteLine(StabilitySession.Compare(baseline, current, new(DateTimeOffset.UtcNow, [], "Journal não consultado neste diagnóstico.")).Description);
+    return;
+}
+if (args.Length == 1 && args[0] == "--live-kernel-logs")
+{
+    var snapshot = await new LinuxKernelLogReader().ReadAsync();
+    Console.WriteLine(snapshot.Status);
+    Console.WriteLine($"Registros retornados: {snapshot.Entries.Count}. Conteúdo omitido neste diagnóstico.");
     return;
 }
 if (args.Length == 1 && args[0] == "--live-edac")
@@ -284,6 +305,10 @@ var runner = new BenchmarkRunner();
 MemoryChecks.Run();
 MemoryCleanupChecks.Run();
 EdacChecks.Run();
+await KernelLogChecks.RunAsync();
+KernelLogClassificationChecks.Run();
+StabilitySessionChecks.Run();
+StabilityReportChecks.Run();
 DiskBenchmarkChecks.Run();
 using (var cancelled = new CancellationTokenSource())
 {

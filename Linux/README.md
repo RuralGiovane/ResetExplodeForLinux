@@ -488,4 +488,28 @@ O cartão RAM oferece **LIBERAR MEMÓRIA DOS TESTES** após a execução: solici
 
 ## Ajustes após o aceite conjunto
 
-Usuário aprovou disco/carregamento e limpeza/EDAC. Após o feedback, progresso/CANCELAR acompanham o cartão do benchmark ativo. O cartão da sessão tem limpeza própria (somente texto); o histórico salvo tem limpeza com confirmação, incluindo pendências, para começar novas exportações sem registros antigos. Arquivos já exportados e configurações são preservados. Aviso da RAM explica recuperação em etapas e oferece “Mais detalhes”. Revisão dos demais cartões ficou para depois; novos controles ainda aguardam conferência visual no [roteiro atualizado](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+Usuário aprovou disco/carregamento e limpeza/EDAC. Após o feedback, progresso/CANCELAR acompanham o cartão do benchmark ativo. O cartão da sessão tem limpeza própria (somente texto); o histórico salvo tem limpeza com confirmação, incluindo pendências, para começar novas exportações sem registros antigos. Arquivos já exportados e configurações são preservados. Aviso da RAM explica recuperação em etapas e oferece “Mais detalhes”. Novos controles conferidos e aprovados pelo usuário em 25/10/2026; revisão de legibilidade dos demais cartões implementada, com conferência visual pendente no [roteiro atualizado](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+### Estabilidade: logs do kernel
+
+Em Sistema e sensores → Estabilidade, CONSULTAR LOGS mostra até 500 avisos/erros recentes do kernel na inicialização atual. Consulta manual via journalctl, sem elevação, com cancelamento e prazo de 10 s. Não altera os registros nem associa mensagens a falhas físicas confirmadas. Ausência de acesso/registros não certifica estabilidade; EDAC continua disponível separadamente.
+
+Builds e suíte aprovados. Diagnóstico real retornou journal indisponível no ambiente do agente; conferir no sistema do usuário conforme o [roteiro](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md). A revisão anterior de legibilidade foi aceita para avançar; ajustes visuais restantes foram adiados pelo usuário.
+
+### Contextos dos registros de estabilidade
+
+A consulta de logs agora mostra associações indicativas a CPU/memória, GPU/gráficos e PCIe, com o marcador que motivou cada uma. O resumo conta mensagens retornadas, permitindo múltiplos contextos por mensagem. Mensagens não classificadas continuam visíveis; nenhuma categoria certifica estabilidade ou confirma defeito físico. Metodologia, fontes e validações em [VALIDACAO_ESTABILIDADE_MEMORIA.md](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+Builds Avalonia/SmokeTests e suíte completa aprovados em 26/10/2026; conferência gráfica/real pendente. Próximas frentes: períodos/deltas por sessão e relatórios de estabilidade.
+
+### Comparação de estabilidade por sessão
+
+CRIAR NOVA REFERÊNCIA registra uma leitura inicial; COMPARAR COM REFERÊNCIA mostra diferenças EDAC válidas e logs recebidos no intervalo. A referência fica em memória até ser substituída ou fechar o app. Cancelamento e fechamento aguardam a operação. Recuos, ausência de dados e suspeitas de reset não viram zero; logs mantêm os limites de acesso e amostragem. Nenhum benchmark é iniciado nem contador zerado.
+
+Builds/suíte aprovados em 26/10/2026. Diagnóstico real confirmou relógio e boot, sem controladores EDAC disponíveis. Conferência gráfica e dados reais pendentes no [roteiro](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md). Próxima frente: relatórios de estabilidade.
+
+### Relatórios de estabilidade
+
+EXPORTAR ESTABILIDADE HTML/JSON gera relatório `linux-stability` esquema 1 com os dados já disponíveis: consultas avulsas EDAC/logs, referência/leitura posterior, comparação e amostra do journal. Inclui datas, classificações, metadados e limites, sem nova consulta ao sistema. Mensagens podem conter caminhos, nomes e identificadores; confira antes de compartilhar.
+
+Snapshots preservam o conteúdo capturado mesmo se novas consultas terminarem durante a exportação. Estados em andamento/cancelados/ausentes são explícitos, sem reaproveitar resultados antigos da operação. Builds e suíte completa aprovados; conferir diálogo e arquivos conforme o [roteiro conjunto de estabilidade](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).

@@ -7,7 +7,7 @@ namespace ResetExplode;
 
 public partial class MainWindow
 {
-    private enum ExportKind { Benchmarks, Storage, Power, Serial, Network }
+    private enum ExportKind { Benchmarks, Storage, Power, Serial, Network, Stability }
     private bool _exporting;
     private Task _exportWork = Task.CompletedTask;
 
@@ -26,6 +26,9 @@ public partial class MainWindow
     private async void ExportNetworkHtml(object? sender, RoutedEventArgs e) => await StartExportAsync(true, ExportKind.Network);
     private async void ExportNetworkJson(object? sender, RoutedEventArgs e) => await StartExportAsync(false, ExportKind.Network);
 
+    private async void ExportStabilityHtml(object? sender, RoutedEventArgs e) => await StartExportAsync(true, ExportKind.Stability);
+    private async void ExportStabilityJson(object? sender, RoutedEventArgs e) => await StartExportAsync(false, ExportKind.Stability);
+
     private Task StartExportAsync(bool html, ExportKind kind = ExportKind.Benchmarks)
     {
         if ((_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null) || _exporting || _cleaningMemory || _clearingHistory || _cancellation != null || _closeWhenStopped) return Task.CompletedTask;
@@ -36,6 +39,7 @@ public partial class MainWindow
     {
         var status = kind switch
         {
+            ExportKind.Stability => StabilityExportStatusText,
             ExportKind.Storage => StorageExportStatusText,
             ExportKind.Power => PowerExportStatusText,
             ExportKind.Serial => SerialExportStatusText,
@@ -55,7 +59,16 @@ public partial class MainWindow
             if (_closeWhenStopped) return;
             string version = typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? "0.16";
             string content;
-            if (kind == ExportKind.Storage)
+            if (kind == ExportKind.Stability)
+            {
+                // Snapshot na thread da UI; consultas posteriores não modificam o conteúdo exportado.
+                var report = StabilityReportBuilder.Capture(version, _stabilityEdacSnapshot,
+                    StabilityStatusText.Text ?? "Consulta ainda não realizada.", _stabilityLogSnapshot,
+                    KernelLogStatusText.Text ?? "Consulta ainda não realizada.", _stabilityBaseline,
+                    _stabilityCurrent, _stabilitySessionLogs, StabilitySessionStatusText.Text ?? "Nenhuma referência criada.");
+                content = await Task.Run(() => html ? StabilityReportBuilder.Html(report) : StabilityReportBuilder.Json(report));
+            }
+            else if (kind == ExportKind.Storage)
             {
                 // Captura na UI: consultas em andamento não alteram este relatório depois.
                 var report = StorageReportBuilder.Capture(version, _storageInventory, _mountInventory,
@@ -84,7 +97,7 @@ public partial class MainWindow
                 var report = BenchmarkReportBuilder.Capture(_history, _pendingHistory, version);
                 content = await Task.Run(() => html ? BenchmarkReportBuilder.Html(report) : BenchmarkReportBuilder.Json(report));
             }
-            string category = kind switch { ExportKind.Storage => "armazenamento", ExportKind.Power => "alimentacao", ExportKind.Serial => "maker", ExportKind.Network => "rede", _ => "benchmarks" };
+            string category = kind switch { ExportKind.Stability => "estabilidade", ExportKind.Storage => "armazenamento", ExportKind.Power => "alimentacao", ExportKind.Serial => "maker", ExportKind.Network => "rede", _ => "benchmarks" };
             string extension = html ? "html" : "json";
             using var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {

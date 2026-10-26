@@ -2,7 +2,7 @@
 
 ## Entrega de 25/10/2026
 
-Implementados na página Benchmark, com pasta absoluta escolhida pelo usuário, progresso, cancelamento, histórico e exportações HTML/JSON existentes. O backend usa Linux x64; outras arquiteturas são rejeitadas explicitamente. Usuário aprovou o roteiro gráfico e de cargas completas abaixo; valores individuais não foram fornecidos. O reposicionamento posterior dos controles de execução ainda requer conferência visual.
+Implementados na página Benchmark, com pasta absoluta escolhida pelo usuário, progresso, cancelamento, histórico e exportações HTML/JSON existentes. O backend usa Linux x64; outras arquiteturas são rejeitadas explicitamente. Usuário aprovou o roteiro gráfico e de cargas completas abaixo; valores individuais não foram fornecidos. O reposicionamento posterior dos controles de execução também foi conferido e aprovado pelo usuário em 25/10/2026.
 
 ## I/O e arquivos temporários
 

@@ -40,7 +40,17 @@ Resolução manual de nomes pelo sistema implementada, com exportação no esque
 
 Sistema e sensores reorganizado em sete sub-abas dedicadas, com navegação fixa e rolagem por seção. Organização aprovada pelo usuário; Visão geral ampliada com resumo do sistema inspirado no fastfetch. Build e suíte aprovados; resumo aprovado pelo usuário, conforme o roteiro.
 
-Benchmarks Linux de disco/carregamento implementados com I/O direto e arquivos temporários exclusivos. Backend real reduzido validado em Btrfs; roteiro gráfico/cargas completas aprovado pelo usuário. Ajustes posteriores de cancelamento por cartão e limpeza de histórico descritos no [roteiro atualizado](docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+Benchmarks Linux de disco/carregamento implementados com I/O direto e arquivos temporários exclusivos. Backend real reduzido validado em Btrfs; roteiro gráfico/cargas completas aprovado pelo usuário. Ajustes posteriores de cancelamento por cartão e limpeza de histórico também conferidos e aprovados pelo usuário em 25/10/2026, conforme o [roteiro atualizado](docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+Cartões revisados com resumos simples e explicações técnicas em “Mais detalhes”. Revisão aceita pelo usuário para continuidade; ajustes visuais restantes adiados, conforme o [roteiro](docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+Consulta manual dos avisos/erros do kernel adicionada em Estabilidade, com cancelamento e limites de leitura. Builds e suíte aprovados; validação com journal real e interface pendente no [roteiro de estabilidade](docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+Logs de estabilidade agora mostram contexto indicativo (CPU/memória, GPU/gráficos e PCIe), motivo da associação e contagens de mensagens. Builds e suíte aprovados; validação gráfica/real pendente no roteiro de estabilidade.
+
+Estabilidade também permite criar referência e comparar diferenças EDAC e logs do intervalo. Builds e suíte aprovados; conferência gráfica/dados reais pendente no [roteiro](docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+Relatórios de estabilidade HTML/JSON implementados, com EDAC, logs classificados e comparação por sessão. Builds e suíte aprovados; conferência conjunta da interface e dos arquivos exportados pendente no roteiro.
 
 ## Continuar o trabalho
 

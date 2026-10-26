@@ -37,6 +37,7 @@
             <Border Classes="card">
               <StackPanel Spacing="12">
                 <TextBlock Text="VISÃO GERAL · RESUMO DO SISTEMA" Classes="label" />
+                <TextBlock Text="Veja a configuração do computador e acompanhe CPU e memória ao vivo." Classes="sub" />
                 <Grid ColumnDefinitions="64,*" Margin="0,4,0,8">
                   <Image Source="avares://ResetExplode/Assets/logo.png" Width="48" Height="48" Stretch="Uniform" VerticalAlignment="Center" />
                   <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
@@ -66,7 +67,9 @@
                 <TextBlock Text="AGORA · LEITURAS AO VIVO" Classes="label" />
                 <TextBlock x:Name="CpuSummaryText" Text="CPU · aguardando leitura" FontFamily="{StaticResource Mono}" FontSize="16" TextWrapping="Wrap" />
                 <TextBlock x:Name="RamSummaryText" Text="RAM · aguardando leitura" FontFamily="{StaticResource Mono}" TextWrapping="Wrap" />
-                <TextBlock Text="¹ Arquitetura e threads disponíveis ao processo. GPU mostra o modelo ou a fonte reportada pelo driver. Capacidade de / vem da última coleta de armazenamento. Temperatura é a maior leitura válida dos sensores de CPU reconhecidos." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="¹ Arquitetura e threads disponíveis ao processo. GPU mostra o modelo ou a fonte reportada pelo driver. Capacidade de / vem da última coleta de armazenamento. Temperatura é a maior leitura válida dos sensores de CPU reconhecidos." Classes="sub" />
+                </Expander>
               </StackPanel>
             </Border>
           </ScrollViewer>
@@ -76,6 +79,7 @@
             <Border Classes="card">
               <StackPanel Spacing="12">
                 <TextBlock Text="COMPUTADOR" Classes="label" />
+                <TextBlock Text="Consulte a identificação do sistema e dos componentes detectados." Classes="sub" />
                 <ItemsControl x:Name="SystemEntries">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="hw:SystemEntry">
@@ -95,6 +99,7 @@
             <Border Classes="card">
               <StackPanel Spacing="12">
                 <TextBlock Text="SENSORES" Classes="label" />
+                <TextBlock Text="Acompanhe temperaturas, ventoinhas e outras leituras disponíveis. Use o filtro para localizar um sensor." Classes="sub" />
                 <TextBox x:Name="SensorSearch" Watermark="Filtrar por componente ou sensor" TextChanged="FilterSensors" />
                 <TextBlock x:Name="SensorCountText" Classes="sub" />
                 <ItemsControl x:Name="SensorEntries">
@@ -112,7 +117,9 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <TextBlock x:Name="TelemetryNoticesText" Classes="sub" />
-                <TextBlock Text="Sensores dependem do hardware e dos drivers. Tensões hwmon são leituras brutas; calibração da placa-mãe ainda não é aplicada." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="A disponibilidade depende do hardware e dos drivers. Tensões hwmon são leituras brutas, sem calibração específica da placa-mãe." Classes="sub" />
+                </Expander>
               </StackPanel>
             </Border>
           </ScrollViewer>
@@ -148,23 +155,29 @@
                 </ItemsControl>
                 <TextBlock x:Name="NetworkNoticesText" Classes="sub" />
                 <TextBlock Text="RESOLUÇÃO DE NOMES · SISTEMA" Classes="label" />
-                <TextBlock Text="Informe um domínio/host. Consulta manual pelo resolvedor do sistema; o nome pode ser enviado aos serviços configurados. Cache, hosts e VPN podem influenciar o resultado; não mede isoladamente um servidor DNS." Classes="sub" />
+                <TextBlock Text="Consulte os endereços de um domínio ou computador. O nome pode ser enviado aos serviços de resolução configurados." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="A consulta usa o resolvedor do sistema. Cache, arquivo hosts e VPN podem influenciar o resultado; a duração não mede isoladamente um servidor DNS. Nenhuma configuração DNS é alterada." Classes="sub" />
+                </Expander>
                 <TextBox x:Name="DnsTarget" Watermark="Domínio, por exemplo example.com (sem https://)" />
                 <WrapPanel Orientation="Horizontal">
                   <Button x:Name="StartDnsButton" Margin="0,0,12,8" Content="RESOLVER NOME" Classes="outline" Click="StartDnsTest" />
                   <Button x:Name="CancelDnsButton" Margin="0,0,12,8" Content="CANCELAR RESOLUÇÃO" Classes="outline" Click="CancelDnsTest" IsEnabled="False" />
                 </WrapPanel>
-                <TextBlock Text="Solicita cancelamento após 5 s; encerramento depende do resolvedor do sistema. Nenhuma configuração DNS é alterada." Classes="sub" />
+                <TextBlock Text="Após 5 s, o app solicita cancelamento; o encerramento depende do sistema." Classes="sub" />
                 <TextBlock x:Name="DnsResultText" Text="Nenhuma resolução executada." TextWrapping="Wrap" />
                 <TextBlock Text="TESTE DE LATÊNCIA · ICMP" Classes="label" />
-                <TextBlock Text="Informe o IP de destino (IPv4 ou IPv6). Envia 10 pings apenas ao iniciar; timeout de 2 s e pausa de 500 ms entre tentativas." Classes="sub" />
+                <TextBlock Text="Meça o tempo de resposta e a perda de pacotes com 10 pings. Informe um endereço IP (IPv4 ou IPv6)." Classes="sub" />
                 <TextBox x:Name="LatencyTarget" Watermark="IP de destino, por exemplo o gateway acima" />
                 <WrapPanel Orientation="Horizontal">
                   <Button x:Name="StartNetworkTestButton" Margin="0,0,12,8" Content="TESTAR LATÊNCIA" Classes="outline" Click="StartLatencyTest" />
                   <Button x:Name="CancelNetworkTestButton" Margin="0,0,12,8" Content="CANCELAR TESTE" Classes="outline" Click="CancelLatencyTest" IsEnabled="False" />
                 </WrapPanel>
                 <TextBlock x:Name="NetworkTestResult" Text="Nenhum teste executado." TextWrapping="Wrap" />
-                <TextBlock Text="Jitter: média da diferença absoluta de latência entre tentativas consecutivas com resposta. Tempos em milissegundos inteiros; zero pode indicar menos de 1 ms. Ausência de resposta pode ser bloqueio de ICMP e não comprova falha da internet. Não mede velocidade de download/upload." Classes="sub" />
+                <TextBlock Text="A falta de resposta pode ser bloqueio de ping e não comprova falha da internet." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Cada ping espera até 2 s, com pausa de 500 ms entre tentativas. Jitter é a média da diferença absoluta entre tempos de respostas consecutivas. Tempos são medidos em milissegundos inteiros; zero pode indicar menos de 1 ms. Este teste não mede download ou upload." Classes="sub" />
+                </Expander>
                 <TextBlock Text="DOWNLOAD / UPLOAD · HTTP" Classes="label" />
                 <TextBlock Text="Ao iniciar, conecta a speed.cloudflare.com (Cloudflare verá seu IP). Baixa 10 MB e envia 5 MB de dados sintéticos, mais tráfego de protocolo/respostas. Até 20 s por etapa; pode consumir sua franquia de dados." Classes="sub" />
                 <WrapPanel Orientation="Horizontal">
@@ -172,12 +185,18 @@
                   <Button x:Name="CancelThroughputButton" Margin="0,0,12,8" Content="CANCELAR TRANSFERÊNCIA" Classes="outline" Click="CancelThroughputTest" IsEnabled="False" />
                 </WrapPanel>
                 <TextBlock x:Name="ThroughputResultText" Text="Nenhum teste de transferência executado." TextWrapping="Wrap" />
-                <TextBlock Text="Uma transferência por vez, sem aquecimento. Taxa inclui conexão e espera do servidor; upload exige resposta HTTP de sucesso. Medição pontual, não capacidade máxima da conexão. Erro ou cancelamento descarta ambas as taxas; novo teste limpa as taxas anteriores." Classes="sub" />
+                <TextBlock Text="O resultado mostra a taxa desta transferência, sem garantir a velocidade máxima da conexão." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Uma transferência por vez, sem aquecimento. Taxa inclui conexão e espera do servidor; upload exige resposta HTTP de sucesso. Medição pontual, não capacidade máxima da conexão. Erro ou cancelamento descarta ambas as taxas; novo teste limpa as taxas anteriores." Classes="sub" />
+                </Expander>
                 <WrapPanel Orientation="Horizontal">
                   <Button x:Name="NetworkHtmlButton" Margin="0,0,12,8" Content="EXPORTAR REDE HTML" Classes="outline" Click="ExportNetworkHtml" />
                   <Button x:Name="NetworkJsonButton" Margin="0,0,12,8" Content="EXPORTAR REDE JSON" Classes="outline" Click="ExportNetworkJson" />
                 </WrapPanel>
-                <TextBlock Text="O relatório inclui IPs, gateways, DNS e destino do teste. Exporta a coleta e os resultados concluídos de resolução de nomes, ICMP e transferência; iniciar um teste limpa o resultado anterior daquele tipo." Classes="sub" />
+                <TextBlock Text="O relatório de rede inclui IPs, gateways, DNS e destinos consultados. Confira esses dados antes de compartilhar." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Exporta o inventário e os resultados concluídos de resolução de nomes, ping e transferência. Iniciar um teste limpa o resultado anterior daquele tipo." Classes="sub" />
+                </Expander>
                 <TextBlock x:Name="NetworkExportStatusText" Classes="sub" />
               </StackPanel>
             </Border>
@@ -188,7 +207,10 @@
             <Border Classes="card">
               <StackPanel Spacing="12">
                 <TextBlock Text="ARMAZENAMENTO" Classes="label" />
-                <TextBlock Text="Dispositivos e partições visíveis ao Linux. Capacidades podem se sobrepor; não representam espaço livre. Consulta SMART manual abaixo." Classes="sub" />
+                <TextBlock Text="Consulte os discos e partições reconhecidos pelo Linux." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="As capacidades dos dispositivos e partições podem se sobrepor e não representam espaço livre. A consulta SMART é iniciada manualmente abaixo." Classes="sub" />
+                </Expander>
                 <Button x:Name="RefreshStorageButton" Content="ATUALIZAR DISPOSITIVOS" Classes="outline" Click="RefreshStorage" />
                 <TextBlock x:Name="StorageStatusText" Text="Aguardando inventário…" Classes="sub" />
                 <ItemsControl x:Name="StorageEntries">
@@ -203,7 +225,10 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <TextBlock Text="CONSULTA SMART" Classes="label" />
-                <TextBlock Text="Selecione um dispositivo inteiro e consulte os dados reportados. Requer smartmontools e permissão de leitura do dispositivo; a consulta pode ativar um disco em repouso. Dispositivos virtuais e alguns adaptadores não oferecem SMART." Classes="sub" />
+                <TextBlock Text="Consulte informações de saúde de um disco. Requer smartmontools e permissão de leitura; pode ativar um disco em repouso." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Selecione um dispositivo inteiro. Os dados são reportados pelo próprio dispositivo; dispositivos virtuais e alguns adaptadores não oferecem SMART." Classes="sub" />
+                </Expander>
                 <ComboBox x:Name="SmartDevice" HorizontalAlignment="Stretch" PlaceholderText="Selecionar dispositivo">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="hw:BlockDevice">
@@ -214,7 +239,10 @@
                 <Button x:Name="SmartReadButton" Content="CONSULTAR SMART" Classes="outline" Click="ReadSmart" />
                 <TextBlock x:Name="SmartResultText" Classes="sub" />
                 <TextBlock Text="SISTEMAS DE ARQUIVOS MONTADOS" Classes="label" />
-                <TextBlock Text="Espaço disponível ao usuário pode diferir do livre total. Montagens podem compartilhar a mesma capacidade; os valores não são somados. Rede e tipos não reconhecidos aparecem sem consulta automática de espaço." Classes="sub" />
+                <TextBlock Text="Veja o espaço disponível nas partições montadas." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Espaço disponível ao usuário pode diferir do livre total. Montagens podem compartilhar a mesma capacidade; os valores não são somados. Rede e tipos não reconhecidos aparecem sem consulta automática de espaço." Classes="sub" />
+                </Expander>
                 <ItemsControl x:Name="MountEntries">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="hw:MountedFileSystem">
@@ -243,7 +271,10 @@
             <Border Classes="card">
               <StackPanel Spacing="12">
                 <TextBlock Text="BATERIA E ALIMENTAÇÃO" Classes="label" />
-                <TextBlock Text="Dados reportados pelo kernel para cada fonte ou bateria. Wh e Ah são grandezas diferentes; leituras ausentes não indicam falha. Atualização automática a cada ~5 segundos; o botão permite antecipar uma leitura." Classes="sub" />
+                <TextBlock Text="Acompanhe as baterias e fontes de alimentação. As leituras se atualizam aproximadamente a cada 5 segundos." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Os dados são reportados pelo kernel. Wh mede energia e Ah mede carga elétrica; os valores não são diretamente equivalentes. Leituras ausentes não indicam falha. O botão antecipa uma leitura." Classes="sub" />
+                </Expander>
                 <Button x:Name="RefreshPowerButton" Content="ATUALIZAR ALIMENTAÇÃO" Classes="outline" Click="RefreshPower" />
                 <TextBlock x:Name="PowerStatusText" Text="Aguardando leitura…" Classes="sub" />
                 <ItemsControl x:Name="PowerEntries">
@@ -283,12 +314,49 @@
             <Border Classes="card">
               <StackPanel Spacing="12">
                 <TextBlock Text="ESTABILIDADE · ERROS DE MEMÓRIA" Classes="label" />
-                <TextBlock Text="Contadores EDAC do kernel" Classes="big" />
-                <TextBlock Text="Consulta somente de leitura. CE são erros corrigidos; UE são erros não corrigidos reportados pelo controlador. Contadores são cumulativos desde o reset indicado pelo driver, não apenas durante os benchmarks." Classes="sub" />
+                <TextBlock Text="Erros reportados pela memória" Classes="big" />
+                <TextBlock Text="Consulte os erros de memória reportados pelo sistema. Os valores acumulam ocorrências e não se limitam ao benchmark atual." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="EDAC é o mecanismo do kernel que fornece estes contadores. CE são erros corrigidos; UE são erros não corrigidos. O período começa no reset indicado pelo driver. A consulta não altera nem zera contadores." Classes="sub" />
+                </Expander>
                 <Button x:Name="RefreshStabilityButton" Content="CONSULTAR / ATUALIZAR EDAC" Classes="outline" Click="RefreshStability" />
                 <TextBlock x:Name="StabilityStatusText" Text="Consulta ainda não realizada." Classes="sub" />
                 <TextBox x:Name="StabilityDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" />
-                <TextBlock Text="Ausência de EDAC pode significar falta de suporte, driver ou permissão. Zero nos contadores não comprova ausência de falhas. Esta etapa não consulta eventos de GPU, logs do kernel ou erros PCIe, nem altera/reset os contadores." Classes="sub" />
+                <TextBlock Text="Zero erros não garante estabilidade. Sem suporte ou acesso ao EDAC, a leitura fica indisponível." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="A ausência de EDAC pode significar falta de suporte do hardware, driver ou permissão. A consulta EDAC não inclui eventos de GPU nem erros PCIe. Os logs do kernel podem ser consultados separadamente abaixo." Classes="sub" />
+                </Expander>
+                <Border Height="1" Background="{DynamicResource Line}" Margin="0,6" />
+                <TextBlock Text="LOGS DO KERNEL · INICIALIZAÇÃO ATUAL" Classes="label" />
+                <TextBlock Text="Consulte avisos e erros registrados pelo Linux desde a inicialização. Podem ajudar a investigar problemas, mas não confirmam sozinhos uma falha de hardware." Classes="sub" />
+                <WrapPanel>
+                  <Button x:Name="RefreshKernelLogsButton" Content="CONSULTAR LOGS" Classes="outline" Click="RefreshKernelLogs" Margin="0,0,8,8" />
+                  <Button x:Name="CancelKernelLogsButton" Content="CANCELAR CONSULTA" Classes="outline" Click="CancelKernelLogs" IsEnabled="False" Margin="0,0,0,8" />
+                </WrapPanel>
+                <TextBlock x:Name="KernelLogStatusText" Text="Consulta ainda não realizada." Classes="sub" />
+                <TextBox x:Name="KernelLogDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="400" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="Consulta manual via journalctl, sem privilégios administrativos. Mostra até 500 registros recentes do kernel, prioridades 0 a 4 (emergência a aviso), da inicialização atual. Prazo de 10 s. Retenção e permissões podem limitar a leitura; nenhum resultado não significa ausência de falhas. Mensagens podem conter nomes, caminhos e identificadores. A consulta não altera logs e não associa eventos a um benchmark específico. Os contextos CPU/memória, GPU/gráficos e PCIe são indicações por marcadores do texto, com o motivo exibido em cada registro. Contagens são de mensagens, não de falhas; uma mensagem pode ter vários contextos. Mensagens não reconhecidas permanecem visíveis." Classes="sub" />
+                </Expander>
+                <Border Height="1" Background="{DynamicResource Line}" Margin="0,6" />
+                <TextBlock Text="COMPARAÇÃO POR SESSÃO" Classes="label" />
+                <TextBlock Text="Crie uma referência e compare depois para observar diferenças nos contadores EDAC e registros recebidos no intervalo. A comparação não identifica a causa das ocorrências." Classes="sub" />
+                <WrapPanel>
+                  <Button x:Name="StartStabilitySessionButton" Content="CRIAR NOVA REFERÊNCIA" Classes="outline" Click="StartStabilitySession" Margin="0,0,8,8" />
+                  <Button x:Name="CompareStabilitySessionButton" Content="COMPARAR COM REFERÊNCIA" Classes="outline" Click="CompareStabilitySession" IsEnabled="False" Margin="0,0,8,8" />
+                  <Button x:Name="CancelStabilitySessionButton" Content="CANCELAR COMPARAÇÃO" Classes="outline" Click="CancelStabilitySession" IsEnabled="False" Margin="0,0,0,8" />
+                </WrapPanel>
+                <TextBlock x:Name="StabilitySessionStatusText" Text="Nenhuma referência criada." Classes="sub" />
+                <TextBox x:Name="StabilitySessionDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" MaxHeight="400" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="A referência existe apenas nesta execução do app. Criar outra substitui a anterior; comparar mantém a mesma referência. Diferenças EDAC exigem identidade e contadores disponíveis, sem recuo e com período coerente. Resets rápidos podem passar despercebidos. Logs usam o horário de recebimento no journal e a mesma inicialização, sobre uma amostra dos últimos 500 avisos/erros. Retenção e permissões podem limitar o período. Nenhum contador é zerado, nenhum benchmark é iniciado e zero diferenças não garante estabilidade." Classes="sub" />
+                </Expander>
+                <TextBlock Text="O relatório inclui as leituras disponíveis e a comparação, com mensagens do kernel, nomes, caminhos e identificadores. Confira esses dados antes de compartilhar." Classes="sub" />
+                <WrapPanel>
+                  <Button x:Name="StabilityHtmlButton" Content="EXPORTAR ESTABILIDADE HTML" Classes="outline" Click="ExportStabilityHtml" Margin="0,0,8,8" />
+                  <Button x:Name="StabilityJsonButton" Content="EXPORTAR ESTABILIDADE JSON" Classes="outline" Click="ExportStabilityJson" Margin="0,0,0,8" />
+                </WrapPanel>
+                <TextBlock x:Name="StabilityExportStatusText" Classes="sub" />
               </StackPanel>
             </Border>
           </ScrollViewer>
@@ -331,12 +399,13 @@
       <StackPanel Margin="32,28" Spacing="20">
         <StackPanel Spacing="6">
           <TextBlock Text="RESET BENCH" Classes="h1" />
-          <TextBlock Text="Renderização, simulação de jogo e desempenho da memória." Classes="sub" />
+          <TextBlock Text="Compare o desempenho da CPU, da memória e do armazenamento." Classes="sub" />
           <TextBlock x:Name="MachineText" Classes="sub" />
         </StackPanel>
         <Border Classes="card">
           <StackPanel Spacing="12">
             <TextBlock Text="INTERRUPÇÃO POR TEMPERATURA DA CPU" Classes="label" />
+            <TextBlock Text="Defina a temperatura da CPU que solicita a interrupção dos benchmarks." Classes="sub" />
             <CheckBox x:Name="ThermalEnabled" Content="Monitorar durante os benchmarks" IsChecked="True" />
             <StackPanel Orientation="Horizontal" Spacing="12">
               <TextBlock Text="Limite (°C)" VerticalAlignment="Center" />
@@ -344,14 +413,20 @@
             </StackPanel>
             <TextBlock x:Name="ThermalStateText" Text="Aguardando leitura da CPU…" Classes="sub" />
             <Button x:Name="SaveSettingsButton" Content="SALVAR CONFIGURAÇÃO" Classes="outline" Click="SavePreferences" />
-            <TextBlock Text="Com monitoramento ativo, é necessária uma leitura recente abaixo do limite para iniciar. O teste é cancelado ao atingir o limite, ficar sem sensor ou completar 5 s sem atualização. A interrupção é cooperativa e depende da resposta dos sensores." Classes="sub" />
+            <TextBlock Text="Com o monitoramento ativo, o teste só inicia com uma leitura recente abaixo do limite." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="O app solicita cancelamento quando a CPU atinge o limite, perde o sensor ou fica 5 s sem atualização. A interrupção depende da resposta dos sensores e do teste, podendo não ser imediata." Classes="sub" />
+            </Expander>
           </StackPanel>
         </Border>
         <Border Classes="card">
           <StackPanel Spacing="14">
             <TextBlock Text="CPU · PATH TRACING" Classes="label" />
             <TextBlock Text="Uma cena, todos os detalhes" Classes="big" />
-            <TextBlock Text="960 × 540 · 1024 amostras por pixel. O teste termina ao completar a imagem; a duração depende da CPU." Classes="sub" />
+            <TextBlock Text="Compare a CPU com uma ou todas as threads ao renderizar a mesma imagem. A duração depende da CPU." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="A cena tem 960 × 540 pixels e 1024 amostras por pixel. O teste termina ao completar a imagem." Classes="sub" />
+            </Expander>
             <Image x:Name="RenderImage" Height="250" Stretch="Uniform" />
             <WrapPanel>
               <Button x:Name="SingleButton" Content="1 THREAD" Classes="outline" Click="RunSingle" Margin="0,0,8,8" />
@@ -370,7 +445,10 @@
           <StackPanel Spacing="12">
             <TextBlock Text="CPU · SIMULAÇÃO DE JOGO" Classes="label" />
             <TextBlock Text="30 mil unidades em batalha" Classes="big" />
-            <TextBlock Text="Física, colisões e inteligência artificial. Aquecimento de 2 s seguido de 10 s de medição." Classes="sub" />
+            <TextBlock Text="Avalie a CPU em uma simulação de física, colisões e inteligência artificial." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="A simulação usa 30 mil unidades, com 2 s de aquecimento seguidos de 10 s de medição." Classes="sub" />
+            </Expander>
             <Button x:Name="SimButton" Content="INICIAR SIMULAÇÃO" Classes="outline" Click="RunSimulation" />
             <ContentControl x:Name="SimulationRunHost" />
           </StackPanel>
@@ -378,6 +456,7 @@
         <Border Classes="card">
           <StackPanel Spacing="12">
             <TextBlock Text="MEMÓRIA RAM" Classes="label" />
+            <TextBlock Text="Meça o tempo de acesso à memória e a quantidade de dados transferida por segundo." Classes="sub" />
             <TextBlock Text="Latência e largura de banda" Classes="big" />
             <TextBlock Text="A latência usa cerca de 272 MiB; o teste de banda usa cerca de 2 GiB de RAM. Execute um teste por vez, com memória disponível." Classes="sub" />
             <WrapPanel>
@@ -398,8 +477,14 @@
             <TextBlock Text="DISCO E CARREGAMENTO" Classes="label" />
             <TextBlock Text="Pasta do volume a testar" Classes="big" />
             <TextBox x:Name="DiskBenchmarkPath" Watermark="Caminho absoluto de uma pasta existente, por exemplo /home/usuario" />
-            <TextBlock Text="Disco: arquivo de 512 MiB, leitura/escrita sequencial e testes aleatórios de 4 s cada. A escrita aleatória adiciona volume variável de gravação. Carregamento: pacote de 512 MiB + 1000 arquivos de 64 KiB. Reserve 1,1 GiB livres. Arquivos exclusivos são removidos ao terminar ou cancelar." Classes="sub" />
-            <TextBlock Text="Linux x64 com I/O direto confirmado pelo sistema de arquivos. Se indisponível, o teste informa erro. No Btrfs, apenas os arquivos temporários usam NoCoW/sem compressão; não representa arquivos Btrfs comuns. Não acessa discos brutos. Cache do dispositivo e metadados ainda podem influenciar. O limite térmico acima monitora a CPU, não o disco." Classes="sub" />
+            <TextBlock Text="Meça leitura, escrita e carregamento na pasta escolhida. Reserve 1,1 GiB livres; os testes gravam arquivos temporários." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="Disco: arquivo de 512 MiB, operações sequenciais e testes aleatórios de 4 s cada. A escrita aleatória adiciona volume variável de gravação. Carregamento: pacote de 512 MiB e 1000 arquivos de 64 KiB. Os arquivos exclusivos são removidos ao terminar ou cancelar." Classes="sub" />
+            </Expander>
+            <TextBlock Text="O limite de temperatura monitora a CPU, não o disco." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="Linux x64 com I/O direto confirmado pelo sistema de arquivos. Se indisponível, o teste informa erro. No Btrfs, apenas os arquivos temporários usam NoCoW/sem compressão; não representa arquivos Btrfs comuns. Não acessa discos brutos. Cache do dispositivo e metadados ainda podem influenciar. O limite térmico acima monitora a CPU, não o disco." Classes="sub" />
+            </Expander>
             <WrapPanel>
               <Button x:Name="DiskBenchmarkButton" Content="TESTAR DISCO" Classes="outline" Click="RunDiskBenchmark" Margin="0,0,8,8" />
               <Button x:Name="LoadingBenchmarkButton" Content="TESTAR CARREGAMENTO" Classes="outline" Click="RunLoadingBenchmark" Margin="0,0,0,8" />
@@ -410,6 +495,7 @@
         <Border Classes="card">
           <StackPanel Spacing="12">
             <TextBlock Text="REGISTRO DESTA SESSÃO" Classes="label" />
+            <TextBlock Text="Acompanhe as mensagens dos testes executados desde que o app foi aberto." Classes="sub" />
             <Button x:Name="ClearSessionButton" Content="LIMPAR REGISTRO DA SESSÃO" Classes="outline" Click="ClearSessionHistory" />
             <TextBlock Text="Limpa somente o texto desta sessão. O histórico salvo e as exportações não são alterados." Classes="sub" />
             <TextBox x:Name="ResultsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" />
@@ -418,7 +504,10 @@
         <Border Classes="card">
           <StackPanel Spacing="12">
             <TextBlock Text="HISTÓRICO · ÚLTIMAS 200 EXECUÇÕES" Classes="label" />
-            <TextBlock Text="Configuração salva pelo botão acima ou ao iniciar um teste. Resultados e interrupções são gravados ao terminar." Classes="sub" />
+            <TextBlock Text="Consulte e exporte os resultados e interrupções das últimas 200 execuções." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="A configuração é salva pelo botão SALVAR CONFIGURAÇÃO ou ao iniciar um teste. Resultados e interrupções são gravados ao terminar. Se houver falha de gravação, use SALVAR PENDÊNCIAS / ATUALIZAR." Classes="sub" />
+            </Expander>
             <TextBlock x:Name="PersistenceStatusText" Classes="sub" />
             <Button x:Name="RetrySaveButton" Content="SALVAR PENDÊNCIAS / ATUALIZAR" Classes="outline" Click="RetryPersistence" />
             <WrapPanel>

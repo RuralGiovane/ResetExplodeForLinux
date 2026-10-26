@@ -2,6 +2,50 @@
 
 Este arquivo acompanha a migração construída a partir do projeto Windows, agora no fork `ResetExplodeForLinux/` (anteriormente `ResetExplode/`). O nome da aplicação permanece `ResetExplode`. Para cada alteração, registrar data, arquivos afetados, o que mudou, motivo, validação e pendências. Distinguir trabalho planejado de funcionalidades implementadas e verificadas.
 
+## 2026-10-26 — Exportação de estabilidade HTML/JSON
+
+Adicionado `Linux/Hardware/Reports/StabilityReportBuilder.cs`: relatório esquema 1 com cópias das coletas avulsas e da sessão, classificação, comparação, datas, boot/tempo monotônico, estados e limites. HTML independente com textos escapados; JSON preserva uint64 e null, com metodologias versionadas. Não coleta novos dados ao exportar.
+
+`Linux/Views/MainWindow.Stability.cs` retém snapshots publicados e os limpa ao iniciar nova operação, evitando resultados antigos após cancelamento/falha. `MainWindow.Export.cs`, `MainWindow.axaml.cs` e `MainWindow.axaml` integram os dois formatos ao diálogo/coordenador existente, com aviso de identificadores no relatório. `Linux/SmokeTests/Reports/StabilityReportChecks.cs` e `Program.cs` adicionam verificações de cópia, escaping, precisão, cultura, datas e estados. Plano, roteiro e READMEs atualizados.
+
+Builds Avalonia/SmokeTests Release sem avisos/erros; suíte completa e `git diff --check` aprovados. Conferência gráfica, diálogo de gravação e leitura dos arquivos pelo usuário pendentes; nenhuma autorização para avançar foi tratada como aceite dos módulos anteriores. Sem commit/push.
+
+## 2026-10-26 — Referência e comparação de estabilidade por sessão
+
+Adicionado `Linux/Hardware/Stability/StabilitySession.cs`: captura somente leitura com boot e relógio monotônico Linux, diferenças EDAC com validação de identidade/contadores/período e filtragem dos registros do journal por intervalo. `LinuxKernelLogReader.cs` preserva boot normalizado e tempo monotônico opcional. Dados indisponíveis/reset suspeito não viram diferenças zero; leitura de logs continua limitada e sem associação causal a benchmarks.
+
+`Linux/Views/MainWindow.Stability.cs`, `MainWindow.axaml` e `MainWindow.axaml.cs` adicionam referência manual, comparação, cancelamento e espera no fechamento. Referência temporária permanece nas comparações e é substituída ao criar outra. `Linux/SmokeTests/Stability/StabilitySessionChecks.cs` e `Program.cs` cobrem casos sintéticos e diagnóstico opt-in `--live-stability-session`. READMEs, plano e roteiro atualizados.
+
+Builds Avalonia e SmokeTests Release sem avisos/erros, suíte completa e `git diff --check` aprovados. Diagnóstico real confirmou relógio e mesma inicialização, sem controladores EDAC; não consultou logs. Diferenças reais/validação gráfica pendentes, assim como aceites anteriores de logs/classificação. Relatórios de estabilidade são a próxima frente. Sem commit/push.
+
+## 2026-10-26 — Classificação contextual dos logs de estabilidade
+
+Adicionado `Linux/Hardware/Stability/KernelLogClassifier.cs`, com contextos CPU/memória, GPU/gráficos e PCIe, metodologia versionada e explicações dos marcadores reconhecidos. Regras por prefixos, cultura invariável e trecho visível limitado. Mensagens podem receber múltiplos contextos; não classificadas permanecem na lista. Sem inferir causa física, contar eventos únicos ou reinterpretar a prioridade do journal.
+
+`LinuxKernelLogReader.cs` acrescenta contexto/motivo à descrição sem modificar a mensagem. `Linux/Views/MainWindow.Stability.cs` mostra o resumo no campo de resultados existente; `MainWindow.axaml` explica os limites em “Mais detalhes”. `Linux/SmokeTests/Stability/KernelLogClassificationChecks.cs` e `Program.cs` cobrem casos positivos/negativos, múltiplos contextos, marcadores benignos, cultura, truncamento e preservação do texto. Plano, roteiro e READMEs atualizados.
+
+Builds Avalonia e SmokeTests Release sem avisos/erros; suíte completa e `git diff --check` aprovados. Evidências são simuladas; consulta real anterior retornou journal indisponível. Validação gráfica/real continua pendente, sem presumir aceite ao receber autorização para avançar. Períodos/deltas por sessão e relatórios são as próximas frentes. Ajustes visuais restantes adiados pelo usuário. Sem commit/push.
+
+## 2026-10-25 — Logs do kernel na aba Estabilidade
+
+Usuário aceitou a revisão de legibilidade para continuidade e adiou ajustes visuais adicionais. Adicionado `Linux/Hardware/Stability/LinuxKernelLogReader.cs`: journalctl somente leitura, inicialização atual, prioridades 0–4, últimos 500 registros, ordem reversa, prazo de 10 s e streams limitados. Parse JSON preserva timestamp/prioridade/mensagem; sinaliza incompletude e truncamento, sem transformar logs vazios em certificação de estabilidade. Nenhuma classificação automática de falha física nem elevação de privilégios.
+
+`Linux/Views/MainWindow.Stability.cs`, `MainWindow.axaml` e `MainWindow.axaml.cs` integram consulta/cancelamento manual, limpeza de resultado antigo e cancelamento/espera no fechamento. `Linux/SmokeTests/Stability/KernelLogChecks.cs` e `Program.cs` adicionam testes simulados e diagnóstico opt-in `--live-kernel-logs` sem conteúdo bruto. READMEs, plano e roteiro atualizados.
+
+Builds Avalonia/SmokeTests Release aprovados, sem avisos/erros; suíte completa aprovada. Cobertos parsing, limites, dados inválidos, processo ausente, stdout/stderr, falha de comando, timeout e cancelamento. Consulta real retornou indisponibilidade do journal neste ambiente; leitura real e interação gráfica pendentes no roteiro. `git diff --check` aprovado. Classificação GPU/PCIe/CPU, deltas por sessão e relatórios continuam pendentes. Sem commit/push.
+
+## 2026-10-25 — Resumos e detalhes expansíveis nos cartões
+
+Revisado `Linux/Views/MainWindow.axaml`: objetivos em linguagem direta, metodologia técnica em “Mais detalhes” recolhidos e cabeçalho de benchmarks incluindo armazenamento. Abrange visão geral, computador, sensores, rede, armazenamento, alimentação, estabilidade e benchmarks. Textos já curtos de Maker, sessão e exportações permanecem visíveis; consumo de dados, permissões SMART, espaço/gravação de disco, RAM e exclusão de histórico continuam junto às ações.
+
+Build Avalonia Release com `--no-restore` aprovado, zero avisos/erros. Verificação XML comparada ao HEAD confirmou todos os controles nomeados/atributos e handlers preservados; expanders recolhidos e sem ações/resultados dinâmicos internos. `git diff --check` aprovado. Alteração de apresentação sem mudanças na lógica; suíte de lógica não reexecutada. Conferência gráfica ainda pendente no roteiro atualizado. CLI Superdesign não iniciou dentro de 25 s; edição realizada diretamente no Avalonia, sem artefato remoto. Plano, roteiro e READMEs atualizados; sem commit/push.
+
+## 2026-10-25 — Aceite dos ajustes de usabilidade
+
+Usuário informou “acabei de conferir, tudo foi confirmado”, aprovando os ajustes posteriores da entrega `b116f3f`: progresso/CANCELAR por cartão, aviso da RAM e “Mais detalhes”, limpeza da sessão preservando histórico, confirmação e persistência da limpeza do histórico, bloqueios e fechamento/reabertura. Checklist de conferência marcada como aprovada; roteiros de disco/estabilidade, READMEs e estado atual do plano sincronizados.
+
+Alteração somente documental, validada com `git diff --check`. Builds e suíte aprovados na implementação anterior; não reexecutados para registrar este aceite. Revisão de legibilidade dos demais cartões permanece como próxima tarefa. Aceite não acrescenta evidência de contadores EDAC reais nem resolve pendências de hardware ou comparação entre plataformas. Nenhum commit ou push realizado nesta atualização.
+
 ## 2026-10-25 — Aceite conjunto e ajustes de usabilidade
 
 Usuário preencheu os roteiros de disco/carregamento e limpeza/EDAC como aprovados e pediu ajustes antes do commit. Observações transitórias removidas do roteiro após incorporar as ações: aviso da recuperação de RAM em etapas, explicação expansível na RAM, controles de progresso/cancelamento no cartão ativo, registro da sessão separado e botões independentes para limpar sessão/histórico salvo. Revisão geral de legibilidade dos demais cartões fica em checklist posterior.

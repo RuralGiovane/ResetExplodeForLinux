@@ -222,6 +222,7 @@ public partial class MainWindow : Window
         SaveSettingsButton.IsEnabled = RetrySaveButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
         ExportHtmlButton.IsEnabled = ExportJsonButton.IsEnabled =
             StorageHtmlButton.IsEnabled = StorageJsonButton.IsEnabled =
+            StabilityHtmlButton.IsEnabled = StabilityJsonButton.IsEnabled =
             PowerHtmlButton.IsEnabled = PowerJsonButton.IsEnabled =
             NetworkHtmlButton.IsEnabled = NetworkJsonButton.IsEnabled =
             SerialHtmlButton.IsEnabled = SerialJsonButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
@@ -307,6 +308,8 @@ public partial class MainWindow : Window
         await _powerLoop;
         await _powerWork;
         await _stabilityWork;
+        await _stabilitySessionWork;
+        await _kernelLogWork;
         await _storageWork;
         await _serialWork;
         await _networkWork;

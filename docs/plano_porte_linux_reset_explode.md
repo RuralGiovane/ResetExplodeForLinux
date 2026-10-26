@@ -2,6 +2,30 @@
 
 Este documento foi elaborado para guiar desenvolvedores e sistemas de inteligência artificial na migração completa do software **RESET EXPLODE** do ambiente Windows (.NET 8 + WPF + DirectX) para o ecossistema Linux nativo (.NET 8 + Avalonia UI + Vulkan).
 
+### Estado atual — 26/10/2026: relatórios de estabilidade implementados
+
+Exportação HTML/JSON `linux-stability` esquema 1 inclui EDAC, logs classificados, referência/leitura posterior, amostra do journal e comparação, com datas, estados e limites. Snapshot independente, sem novas consultas; resultados anteriores são limpos ao atualizar sua operação, e estados ausentes/em andamento/cancelados permanecem explícitos. Integração ao coordenador de exportação existente. Builds e suíte completa aprovados. Próxima validação: conferência conjunta das etapas de logs, classificação, sessão e relatórios no roteiro de estabilidade; ainda sem aceite gráfico/real. Demais módulos do porte continuam pendentes. Ajustes visuais adiados e distribuição por último.
+
+### Estado atual — 26/10/2026: comparação de estabilidade por sessão
+
+Referência manual e comparação implementadas com diferenças CE/UE condicionadas à identidade/continuidade dos contadores e seleção de logs pelo intervalo monotônico da mesma inicialização. Referência em memória, renovável; cancelamento e fechamento aguardam a operação. Leituras indisponíveis, resets suspeitos e limites da amostra de logs ficam explícitos. Builds/suíte aprovados; diagnóstico real confirmou relógio/boot, sem controladores EDAC. Conferência gráfica e comparação de dados reais pendentes. Próxima frente: relatórios de estabilidade. Ajustes visuais adicionais adiados e distribuição por último.
+
+### Estado atual — 26/10/2026: contextos dos logs de estabilidade
+
+Classificação indicativa `kernel-context-v1` implementada: CPU/memória, GPU/gráficos e PCIe por marcadores de texto, com motivo por mensagem e resumo de contagens. Registros não classificados e mensagens originais permanecem visíveis; contagens não representam falhas físicas nem eventos únicos. Builds e suíte completa aprovados. Conferência de logs reais/interface ainda pendente; autorização para avançar não foi tratada como aceite. Próximas frentes: períodos/deltas por sessão e relatórios de estabilidade. Ajustes visuais adicionais adiados; distribuição permanece por último.
+
+### Estado atual — 25/10/2026: consulta manual de logs do kernel
+
+Usuário aceitou a melhoria de legibilidade para avançar e adiou ajustes visuais restantes. Implementada consulta limitada de avisos/erros do kernel na inicialização atual, via journalctl, com cancelamento e integração ao fechamento. Mostra registros sem classificá-los como falhas físicas e distingue ausência/incompletude de uma comprovação de estabilidade. Builds e suíte aprovados; journal real indisponível no ambiente do agente, conferência no sistema do usuário pendente no roteiro de estabilidade. Próximas frentes: classificação contextual GPU/PCIe/CPU, períodos por sessão e relatórios. Distribuição permanece por último.
+
+### Estado atual — 25/10/2026: revisão de legibilidade implementada
+
+Resumos dos cartões revisados e textos técnicos longos organizados em “Mais detalhes”, seguindo o padrão da limpeza de RAM. Informações necessárias antes de agir e controles/resultados permanecem visíveis. Build Avalonia aprovado sem avisos/erros; controles nomeados e eventos preservados por verificação estrutural. Conferência visual desta revisão pendente em `VALIDACAO_ESTABILIDADE_MEMORIA.md`. Próxima frente funcional: continuar estabilidade/logs; GPU e demais módulos ainda pendentes. Distribuição permanece por último.
+
+### Estado atual — 25/10/2026: ajustes de usabilidade validados
+
+Usuário confirmou a conferência de todos os ajustes posteriores: progresso/cancelamento por cartão, aviso e detalhes da RAM, limpeza da sessão, confirmação e persistência da limpeza do histórico, bloqueios e fechamento/reabertura. Checklist em `VALIDACAO_ESTABILIDADE_MEMORIA.md` aprovada. Implementação já registrada no commit `b116f3f`; esta atualização registra somente o aceite. Próxima tarefa: revisão de legibilidade dos demais cartões com resumo simples e “Mais detalhes”. Módulos restantes de estabilidade/logs/GPU e validações dependentes de hardware continuam pendentes; distribuição permanece por último.
+
 ### Estado atual — 25/10/2026: aceite conjunto e ajustes para commit
 
 Usuário aprovou os roteiros de disco/carregamento e limpeza/EDAC, acrescentando feedback de usabilidade. Aviso de recuperação de RAM em etapas e “Mais detalhes” implementados; controles de execução/cancelamento movidos ao cartão ativo; limpeza separada da sessão e do histórico salvo implementada com confirmação no app, gravação atômica e bloqueios. Revisão de legibilidade dos demais cartões ficou na checklist posterior. Builds/suíte aprovados; ajustes novos ainda não conferidos visualmente pelo usuário. Entrega acumulada preparada para commit, sem push. Distribuição continua por último; próximos módulos de estabilidade/logs/GPU permanecem pendentes.
