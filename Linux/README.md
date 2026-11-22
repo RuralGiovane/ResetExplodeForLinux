@@ -1,5 +1,7 @@
 # RESET EXPLODE — base Avalonia para Linux
 
+Documentação temática em [docs/README.md](../docs/README.md): projeto, arquitetura, funcionalidades, contratos, decisões e histórico. Este arquivo conserva descrições e estados de diferentes etapas; consulte as fichas atuais e as datas dos roteiros para distinguir pendências antigas das atuais.
+
 ## Stress CPU/RAM — 22/11/2026
 
 Em **Sistema e sensores → Estabilidade**, carga CPU e verificação de padrões RAM podem ser executadas separadamente ou juntas por 1–30 minutos. RAM explícita de 16–1024 MiB (padrão 256 MiB), limitada a um quarto do `MemAvailable` observado e do orçamento estimado do runtime. A verificação não reserva memória e não garante disponibilidade futura, inclusive em ambientes com limites compartilhados.

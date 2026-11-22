@@ -8,7 +8,7 @@ Fork em migração de Windows/WPF para Linux/Avalonia, mantendo o nome do produt
 | [Windows/](Windows/README.md) | Base Windows de referência, projeto WPF e publicação. |
 | [Shared/](Shared/README.md) | Algoritmos compilados pelos dois destinos. |
 | `Assets/` | Imagens compartilhadas pelas interfaces. |
-| [docs/](docs/ESTRUTURA.md) | Guia de migração, registro de alterações e mapa do projeto. |
+| [docs/](docs/README.md) | Projeto, arquitetura, funcionalidades, contratos, decisões, validação e histórico. |
 | `.github/workflows/` | Validação Linux e publicação Windows. |
 
 ## Executar e validar
@@ -53,6 +53,8 @@ Estabilidade também permite criar referência e comparar diferenças EDAC e log
 Relatórios de estabilidade HTML/JSON implementados, com EDAC, logs classificados e comparação por sessão. Builds e suíte aprovados; conferência conjunta da interface e dos arquivos exportados pendente no roteiro.
 
 ## Continuar o trabalho
+
+Comece pelo [índice da documentação](docs/README.md). As [fichas de funcionalidades](docs/0003-funcionalidades/README.md) distinguem o comportamento atual, a referência Windows e as lacunas Linux; os [contratos](docs/0004-contratos/README.md) descrevem os dados e integrações existentes.
 
 Leia o [guia](docs/plano_porte_linux_reset_explode.md), o [registro](docs/REGISTRO_DE_ALTERACOES.md) e o [mapa de pastas](docs/ESTRUTURA.md). Os caminhos citados nas entradas históricas podem anteceder a reorganização; o mapa mostra os destinos atuais.
 

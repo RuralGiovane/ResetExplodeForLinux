@@ -2,6 +2,12 @@
 
 Este arquivo acompanha a migração construída a partir do projeto Windows, agora no fork `ResetExplodeForLinux/` (anteriormente `ResetExplode/`). O nome da aplicação permanece `ResetExplode`. Para cada alteração, registrar data, arquivos afetados, o que mudou, motivo, validação e pendências. Distinguir trabalho planejado de funcionalidades implementadas e verificadas.
 
+## 2026-11-22 — Documentação temática do projeto
+
+Criado [índice geral](README.md) com seções numeradas de projeto, arquitetura, funcionalidades, contratos, desenvolvimento, decisões e histórico. As fichas distinguem recursos implementados/parciais/pendentes, indicam fontes Windows/Linux e vinculam validação. Documentos anteriores preservados nos mesmos caminhos; README principal e mapa de estrutura atualizados. Motivo: localizar o estado atual por assunto sem perder o contexto cronológico. Detalhes e manutenção em [registro da organização](0007-historico/0003-2026-11-22-documentacao.md).
+
+Validação documental: links relativos e diff --check; não houve nova implementação de código nesta etapa.
+
 ## 2026-11-22 — Stress CPU/RAM Linux
 
 - `Linux/Core/Benchmarks/StressTest.cs`: carga CPU e padrões RAM derivados do Windows, duração limitada, orçamento conservador, cancelamento cooperativo e espera de todos os workers; erro de verificação interrompe a carga.

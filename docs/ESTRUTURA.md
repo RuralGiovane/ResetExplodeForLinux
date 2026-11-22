@@ -1,5 +1,7 @@
 # Mapa do projeto
 
+Entrada atual da documentação: [índice geral](README.md). Este mapa preserva também o contexto da reorganização anterior; o [guia de arquitetura](0002-arquitetura/0001-camadas-e-fontes.md) descreve as responsabilidades atuais.
+
 Todos os caminhos abaixo são relativos à raiz Git `ResetExplodeForLinux/`. Os nomes da aplicação, namespaces e assemblies continuam iguais; pastas representam responsabilidades, sem exigir namespaces novos.
 
 ```text
@@ -14,12 +16,13 @@ Linux/
   Views/                    MainWindow e seus arquivos parciais
   Styles/                   tema Avalonia
   Core/
-    Benchmarks/             coordenação, política térmica, RAM
+    Benchmarks/             CPU/RAM/disco, stress, coordenação e política térmica
+    Storage/                workspace temporário e backend de I/O direto
     Lifecycle/              instância única e pedidos de ativação
     Persistence/            configurações e histórico XDG
     Reports/                exportação de benchmarks
   Hardware/
-    Network/                inventário local de interfaces e contadores
+    Network/                inventário, ICMP, DNS e throughput HTTP limitado
     Common/                 acesso a procfs/sysfs e arquivos
     Models/                 modelos de telemetria
     Interop/                integração NVML
@@ -28,15 +31,24 @@ Linux/
     Power/                  bateria e fontes
     Maker/                  portas seriais, USB, grupos e aliases
     Reports/                exportações de hardware
+    Stability/              EDAC, journal, classificação e comparação por sessão
   SmokeTests/
     Program.cs              seleção dos modos de teste/diagnóstico
     Core/                   persistência e política térmica
     Telemetry/, Storage/    testes dos coletores/processos
     Power/, Maker/          alimentação e seriais
     Reports/                snapshots, HTML e JSON
+    Network/, Stability/    rede, EDAC/journal, deltas e stress CPU/RAM
   validate.sh               validação normal/offline
   README.md                 instruções e limites
-docs/                      documentação versionada
+docs/                       documentação versionada (entrada: README.md)
+  0001-projeto/             identidade e paridade
+  0002-arquitetura/         camadas e execução
+  0003-funcionalidades/     fichas do porte
+  0004-contratos/           modelos, arquivos e integrações
+  0005-desenvolvimento/     build, validação e manutenção da documentação
+  0006-decisoes/            contexto e consequências das escolhas
+  0007-historico/           registros datados
 .github/workflows/         CI Linux e publicação Windows
 ```
 
@@ -69,4 +81,4 @@ As entradas anteriores do registro preservam os caminhos históricos. Os documen
 
 Execute `bash Linux/validate.sh --offline-net8` para Core/Hardware/SmokeTests. O modo suplementar `--offline-net10` seleciona recursivamente os fontes, excluindo `bin`/`obj`. Execute `bash Linux/validate.sh` para incluir Avalonia quando os pacotes estiverem acessíveis.
 
-As compilações Avalonia e WPF não foram confirmadas nesta reorganização. Recursos, referências e XML foram revisados estaticamente; a validação gráfica depende da execução nos respectivos ambientes. `bin/`, `obj/` e pacotes gerados são ignorados no Git.
+Na reorganização original, as compilações Avalonia e WPF não tinham sido confirmadas; recursos, referências e XML foram revisados estaticamente. Esse registro não descreve o estado atual: consulte as [evidências de validação](0005-desenvolvimento/0002-validacao.md). `bin/`, `obj/` e pacotes gerados são ignorados no Git.
