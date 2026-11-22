@@ -1,5 +1,24 @@
 # Limpeza de memória e estabilidade EDAC — 25/10/2026
 
+## Stress CPU/RAM — adicionado em 22/11/2026
+
+Build Avalonia/Core/Hardware/SmokeTests aprovado sem avisos/erros com `UseAppHost=false`. Suíte completa aprovada, incluindo prazo curto, CPU/RAM, padrões com caudas e corrupção injetada, orçamento de memória, pré-cancelamento, cancelamento durante carga, falha do observador, pré-checagem térmica e interrupção térmica simulada. Estes testes não equivalem a aquecimento real ou validação prolongada do hardware.
+
+Conferência manual ainda pendente:
+
+Layout inicial conferido por captura Avalonia em sessão gráfica, sem iniciar carga. O gerenciador de janelas manteve a área em 936×993; as tentativas de 1180×850/820×620 não validaram esses tamanhos. Na primeira execução do verificador temporário ocorreu `TaskCanceledException` em `Tmds.DBus.Protocol` durante encerramento; a segunda fechou sem essa exceção. Origem não determinada, sem alteração do backend D-Bus. Revalidar fechamento na aplicação normal.
+
+- [ ] Em Sistema e sensores → Estabilidade, desmarcar CPU/RAM e confirmar orientação para selecionar uma carga.
+- [ ] Rodar CPU, RAM e combinação por 1 minuto; conferir progresso, passadas, resultado sem pontuação e histórico/exportações na página Benchmark.
+- [ ] Cancelar durante carga e conferir encerramento, estado Cancelled sem métricas parciais e possibilidade de iniciar de novo.
+- [ ] Fechar durante carga; confirmar que a janela aguarda workers e reabre com histórico preservado.
+- [ ] Conferir bloqueio recíproco com benchmarks/rede/exportações/limpeza, inclusive alternando páginas.
+- [ ] Conferir que desativar monitor térmico dos benchmarks não desativa proteção do stress. Sem sensor recente, a carga deve ser recusada; não aquecer deliberadamente o hardware para validar o limite.
+- [ ] Conferir erro legível quando a RAM solicitada excede um quarto da disponibilidade observada/orçamento do runtime.
+- [ ] Criar referência EDAC antes da carga e comparar depois; tratar logs/deltas como observações, sem atribuição automática nem veredito definitivo.
+
+RAM usa 16–1024 MiB explicitamente; padrão 256 MiB. Prazo de 1–30 minutos inclui alocação. Margem de memória é uma estimativa momentânea, não uma reserva ou proteção contra OOM externo. Proteção térmica observa CPU, não DIMMs. Testes curtos sem passada RAM completa são apresentados como inconclusivos.
+
 ## Estado
 
 Implementados botão de limpeza e primeira etapa de estabilidade (EDAC). Usuário preencheu e aprovou o roteiro conjunto com [disco/carregamento](VALIDACAO_DISCO.md). O usuário também conferiu e aprovou todos os ajustes de usabilidade abaixo em 25/10/2026. Itens condicionais dependem do hardware disponível; não foram fornecidos contadores EDAC reais. Builds Avalonia/SmokeTests e suíte completa aprovados em .NET 8, sem avisos/erros; `git diff --check` aprovado.

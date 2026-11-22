@@ -1,5 +1,9 @@
 # Plano Mestre de Portabilidade: RESET EXPLODE para Linux
 
+### Estado atual — 22/11/2026: stress CPU/RAM
+
+Adicionada carga CPU e escrita/verificação de RAM em Estabilidade, com duração configurável, proteção térmica obrigatória, orçamento conservador de memória, cancelamento/espera dos workers e histórico/exportação pelo fluxo Benchmark. Algoritmos derivados de Windows/StressTester.cs, com backend Linux separado; não altera Windows/Shared. Build Avalonia e suíte completa aprovados com `UseAppHost=false`. Roteiro de carga real e interação em `VALIDACAO_ESTABILIDADE_MEMORIA.md` permanece pendente; não declara equivalência integral, estabilidade certificada ou validação de GPU. Pendências anteriores de EDAC/journal real também continuam abertas. Distribuição por último.
+
 Este documento foi elaborado para guiar desenvolvedores e sistemas de inteligência artificial na migração completa do software **RESET EXPLODE** do ambiente Windows (.NET 8 + WPF + DirectX) para o ecossistema Linux nativo (.NET 8 + Avalonia UI + Vulkan).
 
 ### Estado atual — 26/10/2026: relatórios de estabilidade implementados

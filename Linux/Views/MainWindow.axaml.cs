@@ -105,7 +105,7 @@ public partial class MainWindow : Window
         });
 
     private async Task RunAsync(string test, string name, Func<CancellationToken, BenchmarkMeasurement> work,
-        Dictionary<string, string>? parameters = null)
+        Dictionary<string, string>? parameters = null, double? mandatoryThermalLimit = null)
     {
         if (_cancellation != null || _closeWhenStopped || _exporting || _cleaningMemory || _clearingHistory || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
         ContentControl destination = test switch
@@ -113,6 +113,7 @@ public partial class MainWindow : Window
             "cpu-simulation" => SimulationRunHost,
             "ram-latency" or "ram-bandwidth" => MemoryRunHost,
             "disk-direct" or "disk-loading" => DiskRunHost,
+            "cpu-ram-stress" => StressRunHost,
             _ => RenderRunHost
         };
         if (_runHost != destination)
@@ -122,10 +123,11 @@ public partial class MainWindow : Window
             _runHost = destination;
         }
         ClearHistoryConfirmation.IsVisible = false;
-        bool thermalEnabled = ThermalEnabled.IsChecked == true;
-        double thermalLimit = (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit);
+        bool thermalEnabled = mandatoryThermalLimit.HasValue || ThermalEnabled.IsChecked == true;
+        double thermalLimit = mandatoryThermalLimit ?? (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit);
         int started = 0;
-        var settings = new LinuxSettings { ThermalEnabled = thermalEnabled, ThermalLimit = thermalLimit };
+        var settings = new LinuxSettings { ThermalEnabled = ThermalEnabled.IsChecked == true,
+            ThermalLimit = (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit) };
         var methodology = BenchmarkMethodology.Parameters(test);
         if (parameters != null)
             foreach (var parameter in parameters) methodology[parameter.Key] = parameter.Value;
@@ -197,6 +199,7 @@ public partial class MainWindow : Window
             _timer.Stop();
             _elapsed.Stop();
             if (historyEntry != null) await RecordBenchmarkAsync(historyEntry, settings);
+            if (test == "cpu-ram-stress" && historyEntry != null) StressResultText.Text = historyEntry.Summary;
             RunProgress.IsIndeterminate = false;
             _renderer = null;
             _simulation = null;
@@ -209,6 +212,9 @@ public partial class MainWindow : Window
 
     private void SetRunning(bool running)
     {
+        StressStartButton.IsEnabled = StressCpu.IsEnabled = StressRam.IsEnabled = StressMemory.IsEnabled =
+            StressMinutes.IsEnabled = StressThermalLimit.IsEnabled = !running && !_closeWhenStopped && !_exporting &&
+            !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
         SingleButton.IsEnabled = MultiButton.IsEnabled = SimButton.IsEnabled =
             DiskBenchmarkButton.IsEnabled = LoadingBenchmarkButton.IsEnabled = DiskBenchmarkPath.IsEnabled =
             LatencyButton.IsEnabled = BandwidthButton.IsEnabled = !running && !_exporting && !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
@@ -257,7 +263,14 @@ public partial class MainWindow : Window
         if (_cancellation?.IsCancellationRequested == true) return;
         StatusText.Text = $"{_currentTest} · {_elapsed.Elapsed.TotalSeconds:N0} s";
         var disk = Volatile.Read(ref _diskProgress);
-        if (disk != null)
+        var stress = Volatile.Read(ref _stressProgress);
+        if (stress != null)
+        {
+            StatusText.Text += $" · {stress.AllocatedBytes / StressTest.MiB} MiB RAM · {stress.MemoryPasses} passada(s)";
+            RunProgress.IsIndeterminate = false;
+            RunProgress.Value = Math.Min(100, 100 * stress.Seconds / _stressDurationSeconds);
+        }
+        else if (disk != null)
         {
             StatusText.Text += $" · {disk.Phase}";
             RunProgress.IsIndeterminate = false;

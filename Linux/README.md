@@ -1,5 +1,15 @@
 # RESET EXPLODE — base Avalonia para Linux
 
+## Stress CPU/RAM — 22/11/2026
+
+Em **Sistema e sensores → Estabilidade**, carga CPU e verificação de padrões RAM podem ser executadas separadamente ou juntas por 1–30 minutos. RAM explícita de 16–1024 MiB (padrão 256 MiB), limitada a um quarto do `MemAvailable` observado e do orçamento estimado do runtime. A verificação não reserva memória e não garante disponibilidade futura, inclusive em ambientes com limites compartilhados.
+
+A proteção térmica da CPU é obrigatória, com limite próprio de 60–100 °C (padrão 90 °C). Cancelamento, erro e fechamento aguardam todos os workers. Uma divergência RAM encerra a carga; passadas incompletas não são contadas. O prazo inclui alocação. Não há pontuação ou certificação de estabilidade, nem monitoramento térmico de DIMMs/GPU.
+
+Histórico e exportações da página Benchmark registram `cpu-ram-stress`, parâmetros, estados e métricas somente quando concluído. EDAC/journal continuam observações manuais: crie referência antes da carga e compare depois. O relatório de estabilidade não incorpora automaticamente o histórico de stress.
+
+Backend em `Core/Benchmarks/StressTest.cs`, integração em `Views/MainWindow.Stress.cs`. Build Avalonia e suíte completa aprovados com `UseAppHost=false`; teste curto dedicado: `dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --stress-only`. Carga prolongada e interação gráfica precisam do [roteiro de validação](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md). GPU/stress gráfico e controle de overclock continuam pendentes.
+
 Fundação Avalonia e telemetria inicial da migração do projeto Windows v0.16. O repositório é o fork `ResetExplodeForLinux`; o produto, assembly e namespace continuam `ResetExplode`.
 
 ## Validação atual — 24/10/2026

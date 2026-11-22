@@ -1,6 +1,11 @@
 using ResetExplode;
 using ResetExplode.Hardware;
 
+if (args.Length == 1 && args[0] == "--stress-only")
+{
+    await StressChecks.RunAsync();
+    return;
+}
 if (args.Length == 1 && args[0] == "--memory-cleanup-only")
 {
     MemoryCleanupChecks.Run();
@@ -304,6 +309,7 @@ static async Task MustCancel(Func<Task> action)
 var runner = new BenchmarkRunner();
 MemoryChecks.Run();
 MemoryCleanupChecks.Run();
+await StressChecks.RunAsync();
 EdacChecks.Run();
 await KernelLogChecks.RunAsync();
 KernelLogClassificationChecks.Run();

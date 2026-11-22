@@ -2,6 +2,14 @@
 
 Este arquivo acompanha a migração construída a partir do projeto Windows, agora no fork `ResetExplodeForLinux/` (anteriormente `ResetExplode/`). O nome da aplicação permanece `ResetExplode`. Para cada alteração, registrar data, arquivos afetados, o que mudou, motivo, validação e pendências. Distinguir trabalho planejado de funcionalidades implementadas e verificadas.
 
+## 2026-11-22 — Stress CPU/RAM Linux
+
+- `Linux/Core/Benchmarks/StressTest.cs`: carga CPU e padrões RAM derivados do Windows, duração limitada, orçamento conservador, cancelamento cooperativo e espera de todos os workers; erro de verificação interrompe a carga.
+- `Linux/Views/MainWindow.Stress.cs`, `MainWindow.axaml*`: controles em Estabilidade, proteção térmica obrigatória, progresso/cancelamento no cartão e integração ao coordenador, histórico e exportações existentes. Sem alterar configuração térmica dos benchmarks.
+- `BenchmarkMethodology.cs`: metodologia explícita sem pontuação/garantia de estabilidade. EDAC/journal permanecem consultas manuais separadas.
+- `SmokeTests/Stability/StressChecks.cs` e `Program.cs`: teste dedicado `--stress-only` e suíte padrão cobrindo orçamento, padrões/caudas/corrupção, prazo, cancelamento, falha do observador e proteção térmica.
+- Build Avalonia e suíte completa aprovados, zero avisos/erros, com `UseAppHost=false`. Carga prolongada, interações e hardware real pendentes no roteiro de estabilidade. GPU/OC e demais módulos seguem pendentes.
+
 ## 2026-10-26 — Exportação de estabilidade HTML/JSON
 
 Adicionado `Linux/Hardware/Reports/StabilityReportBuilder.cs`: relatório esquema 1 com cópias das coletas avulsas e da sessão, classificação, comparação, datas, boot/tempo monotônico, estados e limites. HTML independente com textos escapados; JSON preserva uint64 e null, com metodologias versionadas. Não coleta novos dados ao exportar.

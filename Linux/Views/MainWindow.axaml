@@ -313,6 +313,34 @@
           <ScrollViewer HorizontalScrollBarVisibility="Disabled">
             <Border Classes="card">
               <StackPanel Spacing="12">
+                <TextBlock Text="Stress de CPU e RAM" Classes="big" />
+                <TextBlock Text="Aplique carga por um período definido e procure divergências nos dados da RAM. A CPU será monitorada durante todo o teste; sem temperatura recente, a carga não inicia." Classes="sub" />
+                <WrapPanel>
+                  <CheckBox x:Name="StressCpu" Content="CPU" IsChecked="True" Margin="0,0,24,8" />
+                  <CheckBox x:Name="StressRam" Content="Verificar RAM" IsChecked="True" Margin="0,0,0,8" />
+                </WrapPanel>
+                <WrapPanel>
+                  <StackPanel Spacing="4" Margin="0,0,16,8">
+                    <TextBlock Text="Duração (min)" />
+                    <NumericUpDown x:Name="StressMinutes" Minimum="1" Maximum="30" Value="5" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Duração do stress em minutos" />
+                  </StackPanel>
+                  <StackPanel Spacing="4" Margin="0,0,16,8">
+                    <TextBlock Text="RAM a testar (MiB)" />
+                    <NumericUpDown x:Name="StressMemory" Minimum="16" Maximum="1024" Value="256" Increment="16" FormatString="0" Width="160" AutomationProperties.Name="Memória do stress em MiB" />
+                  </StackPanel>
+                  <StackPanel Spacing="4" Margin="0,0,0,8">
+                    <TextBlock Text="Limite CPU (°C)" />
+                    <NumericUpDown x:Name="StressThermalLimit" Minimum="60" Maximum="100" Value="90" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Limite de temperatura da CPU no stress" />
+                  </StackPanel>
+                </WrapPanel>
+                <TextBlock Text="O teste aumenta consumo e temperatura. Reserve memória para os outros aplicativos. A proteção monitora a CPU, não a temperatura dos módulos de RAM." Classes="sub" />
+                <Button x:Name="StressStartButton" Content="INICIAR STRESS" Classes="primary" Click="RunStress" />
+                <ContentControl x:Name="StressRunHost" />
+                <TextBlock x:Name="StressResultText" Text="Nenhum stress executado. Resultados e interrupções ficam no histórico e nas exportações da página Benchmark." Classes="sub" />
+                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+                  <TextBlock Text="CPU usa as threads disponíveis, reservando uma para RAM quando possível. RAM escreve e verifica padrões em blocos; uma divergência interrompe a carga. O tamanho pedido deve caber em um quarto da memória disponível observada e do orçamento do runtime; essa checagem não reserva RAM nem garante disponibilidade futura. O prazo inclui alocação. Passadas incompletas não contam e zero divergências não comprova estabilidade. Cancelar ou fechar aguarda os workers. Para observar EDAC e logs no período, crie uma referência abaixo antes de iniciar e compare depois. Esses dados não são atribuídos automaticamente ao stress." Classes="sub" />
+                </Expander>
+                <Border Height="1" Background="{DynamicResource Line}" Margin="0,6" />
                 <TextBlock Text="ESTABILIDADE · ERROS DE MEMÓRIA" Classes="label" />
                 <TextBlock Text="Erros reportados pela memória" Classes="big" />
                 <TextBlock Text="Consulte os erros de memória reportados pelo sistema. Os valores acumulam ocorrências e não se limitam ao benchmark atual." Classes="sub" />

@@ -15,6 +15,13 @@ public static class BenchmarkMethodology
         };
         switch (test)
         {
+            case "cpu-ram-stress":
+                result["measurement"] = "bounded CPU FMA/sqrt/sin/integer load and RAM pattern write/verify; no performance score or stability verdict";
+                result["memory"] = "explicit MiB, maximum 1024; at most one quarter of observed MemAvailable/runtime budget; availability may change";
+                result["duration"] = "includes allocation; incomplete RAM passes not counted; cooperative deadline";
+                result["thermal"] = "mandatory CPU temperature watchdog; does not monitor DIMM temperature";
+                result["hardwareErrors"] = "EDAC and journal are separate manual observations, not automatically attributed to this workload";
+                break;
             case "disk-direct":
             case "disk-loading":
                 result["io"] = "O_DIRECT; alignment via STATX_DIOALIGN or Btrfs sector ioctl; 4096-byte aligned buffers/offsets; writes O_DSYNC";
