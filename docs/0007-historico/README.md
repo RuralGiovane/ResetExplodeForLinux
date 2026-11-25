@@ -12,6 +12,8 @@ Registros datados do pedido, mudanças, motivos e verificações. Não são logs
 
 - [0007 — 25/11/2026 — Benchmark e responsividade](./0007-2026-11-25-benchmark-e-responsividade.md)
 
+- [0008 — 25/11/2026 — Telemetria DRM AMD/Intel](./0008-2026-11-25-telemetria-drm.md)
+
 [Voltar ao índice geral](../README.md)
 
 O [registro acumulado anterior](../REGISTRO_DE_ALTERACOES.md) conserva as etapas desde outubro de 2026. O [plano histórico](../plano_porte_linux_reset_explode.md) contém propostas e estados de épocas diferentes; consulte a matriz atual para saber o que permanece pendente.

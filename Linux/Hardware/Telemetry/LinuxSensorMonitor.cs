@@ -29,7 +29,7 @@ public sealed class LinuxSensorMonitor(LinuxFiles files, IGpuSensorSource? gpu =
             HardwareComponent component = chip switch
             {
                 "coretemp" or "k10temp" or "k8temp" or "zenpower" => HardwareComponent.Cpu,
-                "amdgpu" or "nouveau" => HardwareComponent.Gpu,
+                "amdgpu" or "radeon" or "nouveau" or "i915" or "xe" => HardwareComponent.Gpu,
                 _ => HardwareComponent.Other
             };
             foreach (string path in files.Files(device, "*"))
@@ -74,6 +74,9 @@ public sealed class LinuxSensorMonitor(LinuxFiles files, IGpuSensorSource? gpu =
                 SensorKind.Clock, HardwareComponent.Cpu, frequency is >= 0 ? frequency / 1000.0 : null,
                 "MHz", frequency is >= 0 ? null : "Frequência indisponível."));
         }
+        var drm = new LinuxDrmSensors(files).Read(cancellation);
+        sensors.AddRange(drm.Sensors);
+        if (drm.Sensors.Count > 0) notices.Add(drm.Status);
         if (gpu != null)
         {
             var result = gpu.Read(cancellation);

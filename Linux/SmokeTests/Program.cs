@@ -1,6 +1,15 @@
 using ResetExplode;
 using ResetExplode.Hardware;
 
+if (args.Length == 1 && args[0] == "--drm-sensors")
+{
+    var snapshot = new LinuxDrmSensors(new LinuxFiles()).Read();
+    Console.WriteLine(snapshot.Status);
+    foreach (var sensor in snapshot.Sensors)
+        Console.WriteLine($"{sensor.Hardware} · {sensor.Label}: {sensor.DisplayValue} {sensor.Error}");
+    return;
+}
+
 if (args.Length == 1 && args[0] == "--gpu-devices")
 {
     try
@@ -352,6 +361,7 @@ StorageInventoryChecks.Run();
 MountChecks.Run();
 PowerChecks.Run();
 TelemetryChecks.Run();
+DrmSensorChecks.Run();
 if (args.Contains("--telemetry-only")) return;
 if (args.Contains("--live-telemetry"))
 {

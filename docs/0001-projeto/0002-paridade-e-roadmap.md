@@ -6,7 +6,7 @@ Estado em 25/11/2026. Não há percentual global de conclusão: presença de arq
 | --- | --- | --- |
 | Sistema/sensores | /proc, /sys, DMI, hwmon, cpufreq | RAM por módulo/SPD e cobertura ampliada |
 | Dashboard | Resumo da máquina e leituras ao vivo | Gráficos/histórico visual e composição Windows completa |
-| GPU | NVML NVIDIA somente leitura | Detalhamento e cobertura AMD/Intel equivalentes |
+| GPU | NVML NVIDIA e DRM AMD/Intel somente leitura; hwmon | Especificações completas e validação real AMD/Xe |
 | CPU/RAM benchmark | Render/simulação compartilhados, latência/banda | Repetibilidade e comparação Windows/Linux |
 | Disco/carregamento | I/O direto Linux x64 | Metodologia/filas/tamanhos diferentes do Windows |
 | Armazenamento/SMART | Inventário, montagens, smartctl, exportação | Validar por dispositivo/controlador |
