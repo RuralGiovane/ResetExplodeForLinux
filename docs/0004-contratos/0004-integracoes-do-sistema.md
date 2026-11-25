@@ -6,6 +6,8 @@
 | --- | --- | --- |
 | /proc, /sys, /etc/os-release | Sistema, sensores e inventários | Ausência, permissão, parsing, remoção |
 | libnvidia-ml/NVML | Métricas NVIDIA somente leitura | Biblioteca/dispositivo/métrica indisponível |
+| libvulkan / Vulkan 1.1 | Pipeline gráfico offscreen via Silk.NET | Driver, fila, formato ou identidade PCI indisponível |
+| vulkaninfo --summary | Inventário textual opcional | Ausência, prazo de 10 s, saída inválida/limitada |
 | libc e statx | I/O direto Linux x64 | ABI/alinhamento/sistema de arquivos não suportado |
 | smartctl | SMART JSON de dispositivo escolhido | Permissão, timeout, bits de alerta, saída inválida |
 | journalctl | Avisos/erros do kernel na inicialização atual | Sem systemd/acesso, timeout ou amostra limitada |
@@ -25,3 +27,7 @@ Não executar toda a interface como root para substituir a autorização pontual
 ICMP usa destino explícito; DNS usa o resolvedor do sistema; throughput usa HTTP com Cloudflare (10 MB recebidos + 5 MB sintéticos enviados). São operações ativas, canceláveis e separadas da coleta local.
 
 O app não controla disponibilidade/capacidade do servidor externo. Uma resposta ausente de ICMP não comprova falha da internet. Não há backend do projeto nem contrato de autenticação/conta.
+
+## Associação térmica da GPU
+
+O backend exige PCI Vulkan único e físico, e consulta o mesmo endereço via NVML; nunca associa por índice/nome. Leituras com mais de 2 s, erro, ausência ou temperatura no limite impedem novas submissões. Frames em execução são aguardados antes de liberar recursos. Ver [decisão Vulkan](../0006-decisoes/0004-backend-vulkan.md).

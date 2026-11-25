@@ -5,5 +5,6 @@ Registros do contexto, escolha e consequências. Decisões retrospectivas são i
 - [0001 — Separar plataformas e compartilhar algoritmos CPU](./0001-separacao-de-plataformas.md)
 - [0002 — Preservar ausência, cancelamento e limites](./0002-resultados-incompletos.md)
 - [0003 — Stress limitado com proteção térmica obrigatória](./0003-stress-cpu-ram.md)
+- [0004 — Backend Vulkan e associação térmica por PCI](./0004-backend-vulkan.md)
 
 [Voltar ao índice geral](../README.md)

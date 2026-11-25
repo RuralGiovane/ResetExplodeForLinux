@@ -5,6 +5,7 @@ linux_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 case "${1:-}" in
   "")
     dotnet build "$linux_dir/ResetExplode.csproj" -c Release --disable-build-servers -m:1
+    dotnet build "$linux_dir/UiChecks/ResetExplode.UiChecks.csproj" -c Release --disable-build-servers -m:1
     dotnet build "$linux_dir/SmokeTests/ResetExplode.SmokeTests.csproj" -c Release --disable-build-servers -m:1
     dotnet run --project "$linux_dir/SmokeTests/ResetExplode.SmokeTests.csproj" -c Release --no-build
     ;;
@@ -39,6 +40,9 @@ for key, value in {
 }.items():
     ET.SubElement(props, key).text = value
 items = ET.SubElement(project, 'ItemGroup')
+ET.SubElement(items, 'PackageReference', Include='Silk.NET.Vulkan', Version='2.22.0')
+for shader in (linux / 'Hardware/Gpu/Shaders').glob('*.spv'):
+    ET.SubElement(items, 'EmbeddedResource', Include=str(shader))
 sources = [linux.parent / 'Shared/Benchmarks/BenchRenderer.cs', linux.parent / 'Shared/Benchmarks/GameSimBench.cs']
 for folder in ('Core', 'Hardware', 'SmokeTests'):
     sources.extend(path for path in (linux / folder).rglob('*.cs') if not {'bin', 'obj'}.intersection(path.relative_to(linux / folder).parts))

@@ -21,6 +21,7 @@
     <Setter Property="FontSize" Value="13" />
   </Style>
   <Style Selector="TextBlock.h1">
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="FontSize" Value="26" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
@@ -29,11 +30,13 @@
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
   <Style Selector="TextBlock.label">
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="FontSize" Value="10.5" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{DynamicResource Muted}" />
   </Style>
   <Style Selector="TextBlock.big">
+    <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="FontSize" Value="22" />
     <Setter Property="FontFamily" Value="{StaticResource Mono}" />
   </Style>
@@ -59,6 +62,11 @@
     <Setter Property="Foreground" Value="{DynamicResource Fg}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
     <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.outline:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
   </Style>
   <Style Selector="TabControl.system-tabs TabItem">
     <Setter Property="Padding" Value="12,10" />

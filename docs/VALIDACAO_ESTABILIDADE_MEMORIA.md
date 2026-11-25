@@ -1,5 +1,9 @@
 # Limpeza de memória e estabilidade EDAC — 25/10/2026
 
+## Aceite conjunto — 22/11/2026
+
+Após a indicação das pendências de stress CPU/RAM e estabilidade (carga prolongada, cancelamento, fechamento e exportações), o usuário informou: “validações feitas, podemos prosseguir”. Aceite manual registrado para continuidade. Não foram fornecidos tempos, temperaturas, medições ou resultados individuais; cenários condicionais de hardware não são certificados por esta confirmação. As listas abaixo preservam o roteiro e o estado histórico anterior ao aceite.
+
 ## Stress CPU/RAM — adicionado em 22/11/2026
 
 Build Avalonia/Core/Hardware/SmokeTests aprovado sem avisos/erros com `UseAppHost=false`. Suíte completa aprovada, incluindo prazo curto, CPU/RAM, padrões com caudas e corrupção injetada, orçamento de memória, pré-cancelamento, cancelamento durante carga, falha do observador, pré-checagem térmica e interrupção térmica simulada. Estes testes não equivalem a aquecimento real ou validação prolongada do hardware.
@@ -180,3 +184,9 @@ Validação: builds Avalonia/SmokeTests Release sem avisos/erros e suíte comple
 - [ ] Conferir fechamento durante exportação e reabertura normal.
 
 Próxima validação: conferir em conjunto logs, classificação, comparação por sessão e relatórios. Estes aceites continuam pendentes; módulos restantes do porte e ajustes visuais seguem no plano, com distribuição por último.
+
+## Benchmark por componente — 23/11/2026
+
+A interface atual substitui a seleção conjunta CPU/RAM pelas abas Benchmark → CPU e Benchmark → Memória RAM, com cards e parâmetros independentes. O fluxo combinado acima é histórico. Progresso/cancelamento ficam acima das abas; EDAC e logs continuam em Estabilidade. Históricos específicos incluem resultados, interrupções e pendências; o histórico antigo combinado é mostrado nos dois componentes. Exportações continuam abrangendo todos os testes.
+
+Build Avalonia e suíte SmokeTests aprovados; cobertura adicionada para classificação por componente, registros legados e metodologia térmica dos novos tipos. Prévia gráfica das abas executada sem iniciar cargas reais. Validação prolongada dos stresses pela nova interface continua pendente.

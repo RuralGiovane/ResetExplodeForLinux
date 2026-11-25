@@ -6,7 +6,7 @@ Estado observado em 22/11/2026.
 | --- | --- | --- |
 | [Linux/Views](../../Linux/Views/) | Layout, eventos, apresentação e coordenação da janela | Core, Hardware, Avalonia |
 | [Linux/Core](../../Linux/Core/) | Benchmarks/stress, política térmica, persistência, relatórios e instância única | .NET; fontes CPU de Shared |
-| [Linux/Hardware](../../Linux/Hardware/) | Leitura Linux, NVML, processos auxiliares e modelos/relatórios por domínio | .NET e APIs Linux |
+| [Linux/Hardware](../../Linux/Hardware/) | Leitura Linux, NVML, backend gráfico Vulkan, processos e modelos/relatórios | .NET, APIs Linux e Silk.NET.Vulkan |
 | [Linux/SmokeTests](../../Linux/SmokeTests/) | Fixtures, regressões e diagnósticos opt-in | Core e Hardware |
 | [Shared/Benchmarks](../../Shared/Benchmarks/) | Render e simulação CPU usados pelos dois sistemas | Sem WPF/Avalonia |
 

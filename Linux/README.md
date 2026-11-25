@@ -2,15 +2,33 @@
 
 Documentação temática em [docs/README.md](../docs/README.md): projeto, arquitetura, funcionalidades, contratos, decisões e histórico. Este arquivo conserva descrições e estados de diferentes etapas; consulte as fichas atuais e as datas dos roteiros para distinguir pendências antigas das atuais.
 
+## Stress GPU e seleção de dispositivos — 23/11/2026
+
+Em **Benchmark → GPU → Stress de GPU**, as GPUs Vulkan são detectadas automaticamente. Escolha integrada/dedicada pelo nome, tipo e PCI, ajuste duração de 1–5 minutos e limite de 60–90 °C, e inicie. A carga Vulkan tem prévia ao vivo da cena real (640×360, até 5 atualizações/s); progresso, cancelamento, histórico e exportações estão integrados. Nenhuma GPU é escolhida automaticamente.
+
+NVIDIA usa NVML; Intel/AMD exigem hwmon ligado ao próprio dispositivo PCI. Sem sensor recente, a opção permanece visível com motivo do bloqueio. Atualizar preserva a escolha ou limpa a seleção se ela desaparecer; nunca troca para outra GPU. GTX 1650 validada nesta máquina; Intel UHD detectada, mas sem temperatura própria disponível.
+
+Diagnósticos CLI seguem disponíveis: `--gpu-devices` e `--gpu-render <PCI> <segundos 1–300>`. Testes simulados em `--vulkan-only`; carga real não integra a suíte automática. Compilação requer Silk.NET.Vulkan 2.22.0/dependências no cache para modo offline. GLSL/SPIR-V versionados, sem glslc em runtime. [Validação e limites](../docs/VALIDACAO_GPU.md).
+
+## Inventário Vulkan — 22/11/2026
+
+Primeira etapa da frente GPU: consulta manual via `vulkaninfo --summary`, disponível no diagnóstico abaixo. Requer Vulkan Tools no PATH e drivers acessíveis. Não inicia carga, não altera clocks e ainda não tem controle na interface.
+
+```bash
+dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --live-vulkan
+```
+
+Identifica dispositivos, versão da API, driver e tipo; distingue software de GPU integrada/dedicada. Prazo de 10 s, Ctrl+C cancela e aguarda encerramento do processo. A consulta não comprova suporte ao futuro pipeline ou proteção térmica. Testes simulados: `--vulkan-only`. Detalhes e próximos critérios em [GPU](../docs/0003-funcionalidades/0015-gpu-benchmarks-e-stress.md).
+
 ## Stress CPU/RAM — 22/11/2026
 
-Em **Sistema e sensores → Estabilidade**, carga CPU e verificação de padrões RAM podem ser executadas separadamente ou juntas por 1–30 minutos. RAM explícita de 16–1024 MiB (padrão 256 MiB), limitada a um quarto do `MemAvailable` observado e do orçamento estimado do runtime. A verificação não reserva memória e não garante disponibilidade futura, inclusive em ambientes com limites compartilhados.
+Em **Benchmark → CPU** e **Benchmark → Memória RAM**, carga CPU e verificação de padrões RAM são iniciadas em cards separados por 1–30 minutos. RAM explícita de 16–1024 MiB (padrão 256 MiB), limitada a um quarto do `MemAvailable` observado e do orçamento estimado do runtime. A verificação não reserva memória e não garante disponibilidade futura, inclusive em ambientes com limites compartilhados.
 
 A proteção térmica da CPU é obrigatória, com limite próprio de 60–100 °C (padrão 90 °C). Cancelamento, erro e fechamento aguardam todos os workers. Uma divergência RAM encerra a carga; passadas incompletas não são contadas. O prazo inclui alocação. Não há pontuação ou certificação de estabilidade, nem monitoramento térmico de DIMMs/GPU.
 
 Histórico e exportações da página Benchmark registram `cpu-ram-stress`, parâmetros, estados e métricas somente quando concluído. EDAC/journal continuam observações manuais: crie referência antes da carga e compare depois. O relatório de estabilidade não incorpora automaticamente o histórico de stress.
 
-Backend em `Core/Benchmarks/StressTest.cs`, integração em `Views/MainWindow.Stress.cs`. Build Avalonia e suíte completa aprovados com `UseAppHost=false`; teste curto dedicado: `dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --stress-only`. Carga prolongada e interação gráfica precisam do [roteiro de validação](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md). GPU/stress gráfico e controle de overclock continuam pendentes.
+Backend em `Core/Benchmarks/StressTest.cs`, integração em `Views/MainWindow.Stress.cs`. Build Avalonia e suíte completa aprovados com `UseAppHost=false`; teste curto dedicado: `dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --stress-only`. Usuário confirmou as validações de stress/estabilidade em 22/11/2026, conforme o [aceite conjunto](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md); não forneceu medições individuais. GPU/stress gráfico e controle de overclock continuam pendentes.
 
 Fundação Avalonia e telemetria inicial da migração do projeto Windows v0.16. O repositório é o fork `ResetExplodeForLinux`; o produto, assembly e namespace continuam `ResetExplode`.
 
@@ -525,3 +543,7 @@ Builds/suíte aprovados em 26/10/2026. Diagnóstico real confirmou relógio e bo
 EXPORTAR ESTABILIDADE HTML/JSON gera relatório `linux-stability` esquema 1 com os dados já disponíveis: consultas avulsas EDAC/logs, referência/leitura posterior, comparação e amostra do journal. Inclui datas, classificações, metadados e limites, sem nova consulta ao sistema. Mensagens podem conter caminhos, nomes e identificadores; confira antes de compartilhar.
 
 Snapshots preservam o conteúdo capturado mesmo se novas consultas terminarem durante a exportação. Estados em andamento/cancelados/ausentes são explícitos, sem reaproveitar resultados antigos da operação. Builds e suíte completa aprovados; conferir diálogo e arquivos conforme o [roteiro conjunto de estabilidade](../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md).
+
+### Regressão gráfica
+
+`dotnet Linux/UiChecks/bin/Release/net8.0/ResetExplode.UiChecks.dll /tmp/reset-ui-captures` verifica as 14 abas em quatro tamanhos de conteúdo, sem iniciar carga. Requer sessão gráfica e build de UiChecks (incluído em `bash Linux/validate.sh`). Detalhes e limites em [Compilar e executar](../docs/0005-desenvolvimento/0001-compilar-e-executar.md#regressão-gráfica-de-responsividade).

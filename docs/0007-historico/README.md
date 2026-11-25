@@ -5,6 +5,12 @@ Registros datados do pedido, mudanças, motivos e verificações. Não são logs
 - [0001 — 22/11/2026 — Inventário inicial do fork](./0001-2026-11-22-inventario.md)
 - [0002 — 22/11/2026 — Implementação de stress CPU/RAM](./0002-2026-11-22-stress.md)
 - [0003 — 22/11/2026 — Organização temática da documentação](./0003-2026-11-22-documentacao.md)
+- [0004 — 22/11/2026 — Aceite de estabilidade e inventário Vulkan](./0004-2026-11-22-vulkan.md)
+- [0005 — 22/11/2026 — Renderização Vulkan e sensor por PCI](./0005-2026-11-22-renderizacao-gpu.md)
+
+- [0006 — 23/11/2026 — Detecção e seleção multi-GPU](./0006-2026-11-23-selecao-gpu.md)
+
+- [0007 — 25/11/2026 — Benchmark e responsividade](./0007-2026-11-25-benchmark-e-responsividade.md)
 
 [Voltar ao índice geral](../README.md)
 

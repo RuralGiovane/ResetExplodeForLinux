@@ -1,6 +1,6 @@
 # Estabilidade: EDAC, journal e comparação
 
-**Estado Linux em 22/11/2026:** Implementado; validação real parcial.
+**Estado Linux em 22/11/2026:** Implementado; aceite manual conjunto registrado em 22/11/2026.
 
 ## Finalidade
 
@@ -29,7 +29,7 @@ Sem EDAC não significa zero erros. Classificação é indicativa, não diagnós
 
 ## Validação e continuidade
 
-Fixtures cobrem parsing, limites, boots, resets, remoção e relatórios. Logs/classificação/comparação reais ainda precisam da conferência registrada no roteiro.
+Fixtures cobrem parsing, limites, boots, resets, remoção e relatórios. Usuário confirmou as validações de estabilidade e exportações em 22/11/2026. Não forneceu contadores reais nem evidência individual dos cenários condicionais.
 
 [Roteiro relacionado](../../docs/VALIDACAO_ESTABILIDADE_MEMORIA.md). Para funções pendentes, o roteiro é referência geral; não representa uma checklist de implementação já cumprida.
 

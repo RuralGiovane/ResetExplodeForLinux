@@ -1,6 +1,93 @@
 using ResetExplode;
 using ResetExplode.Hardware;
 
+if (args.Length == 1 && args[0] == "--gpu-devices")
+{
+    try
+    {
+        foreach (var choice in GpuStressDiscovery.Collect())
+            Console.WriteLine($"{choice.Label} · {(choice.CanStress ? "Disponível" : "Indisponível")} · {choice.Status}");
+    }
+    catch (Exception ex) { Console.Error.WriteLine(ex.Message); Environment.ExitCode = 3; }
+    return;
+}
+if (args.Length == 2 && args[0] == "--gpu-preview")
+{
+    try
+    {
+        GpuPreviewFrame? previous = null;
+        int updates = 0;
+        bool changed = false;
+        var result = VulkanGpuRenderer.Run(args[1], TimeSpan.FromSeconds(3), preview: frame =>
+        {
+            if (frame.Width != 640 || frame.Height != 360 || frame.NonBlackPixels() == 0 ||
+                (previous != null && frame.FrameNumber <= previous.FrameNumber))
+                throw new Exception("Quadro GPU inválido ou fora de ordem.");
+            if (previous != null && !previous.Pixels.Span.SequenceEqual(frame.Pixels.Span)) changed = true;
+            previous = frame; updates++;
+        });
+        if (updates < 2 || !changed || previous?.FrameNumber != result.Frames)
+            throw new Exception("Prévia não atualizou a cena ou não entregou o quadro final.");
+        using var stop = new CancellationTokenSource();
+        int cancelledUpdates = 0;
+        try
+        {
+            VulkanGpuRenderer.Run(args[1], TimeSpan.FromSeconds(3), cancellation: stop.Token,
+                preview: _ => { cancelledUpdates++; stop.Cancel(); });
+            throw new Exception("Cancelamento pela prévia ignorado.");
+        }
+        catch (OperationCanceledException) { }
+        if (cancelledUpdates != 1) throw new Exception("Quadro publicado após cancelamento.");
+        Console.WriteLine($"OK: {result.Device}, {updates} prévias distintas no tempo, {result.Frames} frames, quadro final e cancelamento; limite 80 °C.");
+    }
+    catch (Exception ex) { Console.Error.WriteLine(ex.Message); Environment.ExitCode = 3; }
+    return;
+}
+if (args.Length > 0 && args[0] == "--gpu-render")
+{
+    if (args.Length != 3 || !int.TryParse(args[2], out int seconds) || seconds is < 1 or > 300)
+    { Console.Error.WriteLine("Uso: --gpu-render <PCI xxxx:xx:xx.x> <segundos 1–300>; carga gráfica real 640×360, limite obrigatório 80 °C."); Environment.ExitCode = 2; return; }
+    using var cancellation = new CancellationTokenSource();
+    ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+    Console.CancelKeyPress += cancel;
+    try
+    {
+        Console.WriteLine("Carga GPU offscreen; Ctrl+C cancela. Aguarda o frame em execução. Não produz score comparável ao Windows.");
+        var result = VulkanGpuRenderer.Run(args[1], TimeSpan.FromSeconds(seconds), cancellation: cancellation.Token);
+        Console.WriteLine($"{result.Device} · PCI {result.PciAddress} · {result.Frames} frames concluídos em {result.Seconds:N2} s · {result.NonBlackPixels} pixels não pretos no último frame.");
+    }
+    catch (OperationCanceledException) { Console.Error.WriteLine("Cancelado; sem resultado parcial."); Environment.ExitCode = 130; }
+    catch (Exception ex) { Console.Error.WriteLine(ex.Message); Environment.ExitCode = 3; }
+    finally { Console.CancelKeyPress -= cancel; }
+    return;
+}
+
+if (args.Length == 1 && args[0] == "--vulkan-only")
+{
+    await VulkanChecks.RunAsync();
+    GpuThermalChecks.Run();
+    return;
+}
+if (args.Length == 1 && args[0] == "--live-vulkan")
+{
+    using var cancellation = new CancellationTokenSource();
+    ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+    Console.CancelKeyPress += cancel;
+    try
+    {
+        var snapshot = await new LinuxVulkanProbe().ReadAsync(cancellation.Token);
+        Console.WriteLine(snapshot.Status);
+        foreach (var device in snapshot.Devices)
+            Console.WriteLine($"GPU{device.Index}: {device.Name} · Vulkan {device.ApiVersion} · {device.DeviceType}\n" +
+                $"Driver: {device.DriverName ?? "indisponível"} {device.DriverVersion ?? ""} · " +
+                (device.IsSoftware ? "Renderização por software" : device.IsHardwareGpu ? "GPU física reportada" : "Tipo não elegível automaticamente"));
+        if (!snapshot.QuerySucceeded) Environment.ExitCode = 3;
+    }
+    catch (OperationCanceledException) { Console.Error.WriteLine("Consulta cancelada."); Environment.ExitCode = 130; }
+    finally { Console.CancelKeyPress -= cancel; }
+    return;
+}
+
 if (args.Length == 1 && args[0] == "--stress-only")
 {
     await StressChecks.RunAsync();
@@ -251,7 +338,8 @@ if (args.Contains("--report-only"))
 }
 if (args.Contains("--storage-only"))
 {
-    PersistenceChecks.Run();
+    BenchmarkCategoryChecks.Run();
+PersistenceChecks.Run();
     return;
 }
 if (args.Contains("--thermal-only"))
@@ -286,6 +374,7 @@ await NetworkDnsChecks.RunAsync();
 await SingleInstanceChecks.RunAsync();
 await SmartChecks.RunAsync();
 await SmartProcessChecks.RunAsync();
+BenchmarkCategoryChecks.Run();
 PersistenceChecks.Run();
 ReportChecks.Run();
 StorageReportChecks.Run();
@@ -312,6 +401,8 @@ MemoryCleanupChecks.Run();
 await StressChecks.RunAsync();
 EdacChecks.Run();
 await KernelLogChecks.RunAsync();
+await VulkanChecks.RunAsync();
+GpuThermalChecks.Run();
 KernelLogClassificationChecks.Run();
 StabilitySessionChecks.Run();
 StabilityReportChecks.Run();

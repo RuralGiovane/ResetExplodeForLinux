@@ -9,7 +9,7 @@
     <Product>RESET EXPLODE</Product>
     <Version>0.16.0</Version>
     <Optimize>true</Optimize>
-    <DefaultItemExcludes>$(DefaultItemExcludes);Core/**;Hardware/**;SmokeTests/**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Core/**;Hardware/**;SmokeTests/**;UiChecks/**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.22" />

@@ -113,8 +113,8 @@ public partial class MainWindow
     {
         var pendingIds = _pendingHistory.Select(e => e.Id).ToHashSet();
         var rows = _pendingHistory.Concat(_history).DistinctBy(e => e.Id)
-            .OrderByDescending(e => e.Date).Take(LocalPersistence.MaximumEntries);
-        HistoryText.Text = string.Join(Environment.NewLine + Environment.NewLine, rows.Select(e =>
+            .OrderByDescending(e => e.Date).Take(LocalPersistence.MaximumEntries).ToArray();
+        string Format(BenchmarkHistoryEntry e)
         {
             string state = e.Outcome switch
             {
@@ -126,7 +126,17 @@ public partial class MainWindow
             };
             string pending = pendingIds.Contains(e.Id) ? " · NÃO SALVO" : "";
             return $"{e.Date.ToLocalTime():dd/MM/yyyy HH:mm:ss} · {e.Name} · {state}{pending}\n{e.Summary}";
-        }));
+        }
+        string Describe(IEnumerable<BenchmarkHistoryEntry> entries)
+        {
+            var lines = entries.Select(Format).ToArray();
+            return lines.Length == 0 ? "Nenhum teste registrado." : string.Join(Environment.NewLine + Environment.NewLine, lines);
+        }
+        HistoryText.Text = Describe(rows);
+        CpuHistoryText.Text = Describe(rows.Where(e => BenchmarkCategory.Includes(e.Test, "cpu")));
+        RamHistoryText.Text = Describe(rows.Where(e => BenchmarkCategory.Includes(e.Test, "ram")));
+        GpuHistoryText.Text = Describe(rows.Where(e => BenchmarkCategory.Includes(e.Test, "gpu")));
+        DiskHistoryText.Text = Describe(rows.Where(e => BenchmarkCategory.Includes(e.Test, "disk")));
     }
 
     private void UpdatePersistenceStatus()

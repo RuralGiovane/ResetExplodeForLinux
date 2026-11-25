@@ -6,14 +6,13 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using ResetExplode.Hardware;
 
 namespace ResetExplode;
 
 public partial class MainWindow : Window
 {
     private readonly BenchmarkRunner _runner = new();
-    private readonly StackPanel _benchmarkRunPanel;
-    private ContentControl _runHost;
     private readonly DispatcherTimer _timer;
     private readonly DispatcherTimer _thermalStatusTimer;
     private readonly Stopwatch _elapsed = new();
@@ -29,8 +28,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _benchmarkRunPanel = BenchmarkRunPanel;
-        _runHost = RenderRunHost;
         InitializePersistence();
         MachineText.Text = $"{Environment.MachineName} · {Environment.ProcessorCount} threads lógicas · {RuntimeInformation.OSDescription}";
         _bitmap = new WriteableBitmap(new PixelSize(BenchRenderer.Width, BenchRenderer.Height),
@@ -47,7 +44,7 @@ public partial class MainWindow : Window
         _thermalStatusTimer.Start();
         UpdateThermalStatus();
         Closing += OnClosing;
-        Opened += async (_, _) => { StartTelemetry(); StartPowerMonitoring(); await Task.WhenAll(StartStorageRefresh(), StartSerialRefresh(), StartNetworkRefresh()); };
+        Opened += async (_, _) => { StartTelemetry(); StartPowerMonitoring(); await Task.WhenAll(StartStorageRefresh(), StartSerialRefresh(), StartNetworkRefresh(), StartGpuDiscovery()); };
         Closed += (_, _) => { StopTelemetry(); _storageCancellation.Dispose(); _serialCancellation.Dispose(); _networkCancellation.Dispose(); _powerCancellation.Dispose(); _stabilityCancellation.Dispose(); _timer.Stop(); _thermalStatusTimer.Stop(); RenderImage.Source = null; _bitmap.Dispose(); };
     }
 
@@ -105,26 +102,12 @@ public partial class MainWindow : Window
         });
 
     private async Task RunAsync(string test, string name, Func<CancellationToken, BenchmarkMeasurement> work,
-        Dictionary<string, string>? parameters = null, double? mandatoryThermalLimit = null)
+        Dictionary<string, string>? parameters = null, double? mandatoryThermalLimit = null, double? gpuThermalLimit = null)
     {
         if (_cancellation != null || _closeWhenStopped || _exporting || _cleaningMemory || _clearingHistory || (_latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null)) return;
-        ContentControl destination = test switch
-        {
-            "cpu-simulation" => SimulationRunHost,
-            "ram-latency" or "ram-bandwidth" => MemoryRunHost,
-            "disk-direct" or "disk-loading" => DiskRunHost,
-            "cpu-ram-stress" => StressRunHost,
-            _ => RenderRunHost
-        };
-        if (_runHost != destination)
-        {
-            _runHost.Content = null;
-            destination.Content = _benchmarkRunPanel;
-            _runHost = destination;
-        }
         ClearHistoryConfirmation.IsVisible = false;
-        bool thermalEnabled = mandatoryThermalLimit.HasValue || ThermalEnabled.IsChecked == true;
-        double thermalLimit = mandatoryThermalLimit ?? (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit);
+        bool thermalEnabled = gpuThermalLimit.HasValue || mandatoryThermalLimit.HasValue || ThermalEnabled.IsChecked == true;
+        double thermalLimit = gpuThermalLimit ?? mandatoryThermalLimit ?? (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit);
         int started = 0;
         var settings = new LinuxSettings { ThermalEnabled = ThermalEnabled.IsChecked == true,
             ThermalLimit = (double)(ThermalLimit.Value ?? (decimal)CpuThermalPolicy.DefaultLimit) };
@@ -155,13 +138,13 @@ public partial class MainWindow : Window
             _timer.Start();
             RefreshProgress();
             BenchmarkMeasurement result;
-            string mode = thermalEnabled ? $"monitoramento CPU: {thermalLimit:N0} °C" : "sem interrupção térmica";
+            string mode = gpuThermalLimit.HasValue ? $"monitoramento GPU: {thermalLimit:N0} °C" : thermalEnabled ? $"monitoramento CPU: {thermalLimit:N0} °C" : "sem interrupção térmica";
             BenchmarkMeasurement Execute(CancellationToken ct)
             {
                 Interlocked.Exchange(ref started, 1);
                 return work(ct);
             }
-            if (thermalEnabled)
+            if (thermalEnabled && !gpuThermalLimit.HasValue)
                 result = await _runner.RunThermalAsync(Execute, cancellation.Token,
                     new CpuThermalPolicy(thermalLimit), () => Volatile.Read(ref _thermalReading));
             else
@@ -171,6 +154,12 @@ public partial class MainWindow : Window
             ResultsText.Text = $"{DateTime.Now:HH:mm:ss} · {historyEntry.Summary}\n{ResultsText.Text}";
             StatusText.Text = "Teste concluído.";
             RunProgress.Value = 100;
+        }
+        catch (GpuThermalException ex)
+        {
+            StatusText.Text = $"{(ex.LoadStarted ? "INTERROMPIDO" : "NÃO INICIADO")}: {ex.Message} Sem pontuação.";
+            historyEntry = Entry(ex.LoadStarted ? BenchmarkOutcome.ThermalStopped : BenchmarkOutcome.NotStarted, StatusText.Text);
+            RunProgress.Value = 0;
         }
         catch (ThermalStopException ex)
         {
@@ -199,7 +188,9 @@ public partial class MainWindow : Window
             _timer.Stop();
             _elapsed.Stop();
             if (historyEntry != null) await RecordBenchmarkAsync(historyEntry, settings);
-            if (test == "cpu-ram-stress" && historyEntry != null) StressResultText.Text = historyEntry.Summary;
+            if (test == "cpu-stress" && historyEntry != null) CpuStressResultText.Text = historyEntry.Summary;
+            if (test == "ram-stress" && historyEntry != null) RamStressResultText.Text = historyEntry.Summary;
+            if (test == "gpu-stress" && historyEntry != null) GpuResultText.Text = historyEntry.Summary;
             RunProgress.IsIndeterminate = false;
             _renderer = null;
             _simulation = null;
@@ -212,8 +203,9 @@ public partial class MainWindow : Window
 
     private void SetRunning(bool running)
     {
-        StressStartButton.IsEnabled = StressCpu.IsEnabled = StressRam.IsEnabled = StressMemory.IsEnabled =
-            StressMinutes.IsEnabled = StressThermalLimit.IsEnabled = !running && !_closeWhenStopped && !_exporting &&
+        UpdateGpuControls();
+        CpuStressStartButton.IsEnabled = RamStressStartButton.IsEnabled = StressMemory.IsEnabled =
+            CpuStressMinutes.IsEnabled = RamStressMinutes.IsEnabled = CpuStressLimit.IsEnabled = RamStressLimit.IsEnabled = !running && !_closeWhenStopped && !_exporting &&
             !_cleaningMemory && !_clearingHistory && _latencyCancellation == null && _throughputCancellation == null && _dnsCancellation == null;
         SingleButton.IsEnabled = MultiButton.IsEnabled = SimButton.IsEnabled =
             DiskBenchmarkButton.IsEnabled = LoadingBenchmarkButton.IsEnabled = DiskBenchmarkPath.IsEnabled =
@@ -260,11 +252,19 @@ public partial class MainWindow : Window
 
     private void RefreshProgress()
     {
+        RefreshGpuPreview();
         if (_cancellation?.IsCancellationRequested == true) return;
         StatusText.Text = $"{_currentTest} · {_elapsed.Elapsed.TotalSeconds:N0} s";
         var disk = Volatile.Read(ref _diskProgress);
         var stress = Volatile.Read(ref _stressProgress);
-        if (stress != null)
+        var gpu = Volatile.Read(ref _gpuProgress);
+        if (gpu != null)
+        {
+            StatusText.Text += $" · {gpu.Frames} frames · GPU {gpu.Temperature:N0} °C";
+            RunProgress.IsIndeterminate = false;
+            RunProgress.Value = Math.Min(100, 100 * gpu.Seconds / _gpuDurationSeconds);
+        }
+        else if (stress != null)
         {
             StatusText.Text += $" · {stress.AllocatedBytes / StressTest.MiB} MiB RAM · {stress.MemoryPasses} passada(s)";
             RunProgress.IsIndeterminate = false;
@@ -320,6 +320,7 @@ public partial class MainWindow : Window
         _stabilityCancellation.Cancel();
         await _powerLoop;
         await _powerWork;
+        await _gpuDiscoveryWork;
         await _stabilityWork;
         await _stabilitySessionWork;
         await _kernelLogWork;
@@ -336,6 +337,10 @@ public partial class MainWindow : Window
         await _exportWork;
         await _memoryCleanupWork;
         await _historyClearWork;
+        _gpuPreview.Take();
+        GpuPreviewImage.Source = null;
+        _gpuBitmap?.Dispose();
+        _gpuBitmap = null;
         _readyToClose = true;
         Close();
     }

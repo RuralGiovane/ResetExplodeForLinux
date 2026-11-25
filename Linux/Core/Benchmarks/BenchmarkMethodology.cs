@@ -15,8 +15,23 @@ public static class BenchmarkMethodology
         };
         switch (test)
         {
+            case "gpu-stress":
+                result["measurement"] = "Vulkan 1.1 offscreen torus; completed frames; no score or stability verdict";
+                result["resolution"] = "640x360";
+                result["shells"] = "32";
+                result["aluIterations"] = "32";
+                result["duration"] = "render loop only; excludes initialization/readback; waits for submitted frame";
+                result["thermal"] = "mandatory selected PCI GPU sensor; NVIDIA NVML or device-local hwmon; no CPU fallback";
+                break;
+            case "cpu-stress":
+            case "ram-stress":
             case "cpu-ram-stress":
-                result["measurement"] = "bounded CPU FMA/sqrt/sin/integer load and RAM pattern write/verify; no performance score or stability verdict";
+                result["measurement"] = test switch
+                {
+                    "cpu-stress" => "bounded CPU FMA/sqrt/sin/integer load; no performance score or stability verdict",
+                    "ram-stress" => "bounded RAM pattern write/verify; no performance score or stability verdict",
+                    _ => "bounded CPU FMA/sqrt/sin/integer load and RAM pattern write/verify; no performance score or stability verdict"
+                };
                 result["memory"] = "explicit MiB, maximum 1024; at most one quarter of observed MemAvailable/runtime budget; availability may change";
                 result["duration"] = "includes allocation; incomplete RAM passes not counted; cooperative deadline";
                 result["thermal"] = "mandatory CPU temperature watchdog; does not monitor DIMM temperature";

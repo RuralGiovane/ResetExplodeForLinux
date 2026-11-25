@@ -14,6 +14,7 @@ public sealed class LinuxNvml : IGpuSensorSource
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int NoArgs();
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int Count(out uint value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int Device(uint index, out IntPtr handle);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int PciDevice([MarshalAs(UnmanagedType.LPStr)] string busId, out IntPtr handle);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int Name(IntPtr device, StringBuilder name, uint length);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int UIntValue(IntPtr device, out uint value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int FieldValue(IntPtr device, uint field, out uint value);
@@ -103,6 +104,21 @@ public sealed class LinuxNvml : IGpuSensorSource
             Add("memoryTotal", "VRAM total", SensorKind.Memory, memory.Total / 1073741824.0, "GiB", memoryCode);
         }
         return new(rows, $"NVIDIA: {count} GPU(s); {failedDevices} dispositivo(s) inacessível(is). Métricas dependem do driver.");
+    }
+
+    public GpuTemperature ReadTemperature(string pciAddress)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        long started = System.Diagnostics.Stopwatch.GetTimestamp();
+        Initialize();
+        if (!_initialized) return new(pciAddress, null, started, _status);
+        var lookup = Export<PciDevice>("nvmlDeviceGetHandleByPciBusId_v2");
+        if (lookup == null || lookup(pciAddress, out var handle) != 0)
+            return new(pciAddress, null, started, "GPU PCI não acessível pelo NVML.");
+        var read = Export<FieldValue>("nvmlDeviceGetTemperature");
+        if (read == null || read(handle, 0, out uint temperature) != 0)
+            return new(pciAddress, null, started, "Temperatura NVML indisponível para esta GPU.");
+        return new(pciAddress, temperature, started, null);
     }
 
     private void Release()

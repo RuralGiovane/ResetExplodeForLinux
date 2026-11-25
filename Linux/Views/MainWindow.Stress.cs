@@ -8,23 +8,22 @@ public partial class MainWindow
     private StressProgress? _stressProgress;
     private double _stressDurationSeconds;
 
-    private async void RunStress(object? sender, RoutedEventArgs e)
+    private async void RunCpuStress(object? sender, RoutedEventArgs e) => await RunStressAsync(true);
+
+    private async void RunRamStress(object? sender, RoutedEventArgs e) => await RunStressAsync(false);
+
+    private async Task RunStressAsync(bool cpu)
     {
         if (_cancellation != null || _closeWhenStopped || _exporting || _cleaningMemory || _clearingHistory ||
             _latencyCancellation != null || _throughputCancellation != null || _dnsCancellation != null) return;
-        bool cpu = StressCpu.IsChecked == true, ram = StressRam.IsChecked == true;
-        if (!cpu && !ram)
-        {
-            StressResultText.Text = "Selecione CPU e/ou RAM para iniciar.";
-            return;
-        }
+        bool ram = !cpu;
         long bytes = ram ? (long)(StressMemory.Value ?? 256) * StressTest.MiB : 0;
-        var duration = TimeSpan.FromMinutes((double)(StressMinutes.Value ?? 5));
+        var duration = TimeSpan.FromMinutes((double)((cpu ? CpuStressMinutes : RamStressMinutes).Value ?? 5));
         _stressDurationSeconds = duration.TotalSeconds;
-        StressResultText.Text = "Aguardando pré-checagem térmica e de memória…";
+        (cpu ? CpuStressResultText : RamStressResultText).Text = "Aguardando pré-checagem térmica e de memória…";
         try
         {
-            await RunAsync("cpu-ram-stress", "Stress de CPU/RAM", ct =>
+            await RunAsync(cpu ? "cpu-stress" : "ram-stress", cpu ? "Stress de CPU" : "Stress de RAM", ct =>
             {
                 if (ram)
                 {
@@ -38,9 +37,9 @@ public partial class MainWindow
                 return new BenchmarkMeasurement($"Carga encerrada após {result.Seconds:N1} s · {result.CpuThreads} thread(s) CPU · {memory}. Não comprova estabilidade.",
                     null, new() { ["seconds"] = result.Seconds, ["cpuThreads"] = result.CpuThreads,
                         ["allocatedBytes"] = result.AllocatedBytes, ["memoryPasses"] = result.MemoryPasses });
-            }, new() { ["cpu"] = cpu.ToString(), ["memoryBytes"] = bytes.ToString(),
+            }, new() { ["stressCpu"] = cpu.ToString(), ["memoryBytes"] = bytes.ToString(),
                 ["durationSeconds"] = duration.TotalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture) },
-                mandatoryThermalLimit: (double)(StressThermalLimit.Value ?? 90));
+                mandatoryThermalLimit: (double)((cpu ? CpuStressLimit : RamStressLimit).Value ?? 90));
         }
         finally
         {

@@ -52,6 +52,8 @@ Estabilidade também permite criar referência e comparar diferenças EDAC e log
 
 Relatórios de estabilidade HTML/JSON implementados, com EDAC, logs classificados e comparação por sessão. Builds e suíte aprovados; conferência conjunta da interface e dos arquivos exportados pendente no roteiro.
 
+Stress GPU agora está em **Sistema e sensores → Estabilidade**, com detecção automática de GPUs integradas/dedicadas, seleção explícita, proteção térmica por dispositivo, cancelamento e histórico/exportações. GPUs sem sensor próprio permanecem visíveis com motivo do bloqueio. Carga e cancelamento pela UI validados na GTX 1650; veja [validação GPU](docs/VALIDACAO_GPU.md).
+
 ## Continuar o trabalho
 
 Comece pelo [índice da documentação](docs/README.md). As [fichas de funcionalidades](docs/0003-funcionalidades/README.md) distinguem o comportamento atual, a referência Windows e as lacunas Linux; os [contratos](docs/0004-contratos/README.md) descrevem os dados e integrações existentes.

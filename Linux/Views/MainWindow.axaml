@@ -310,37 +310,9 @@
           </ScrollViewer>
         </TabItem>
         <TabItem Header="Estabilidade">
-          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-            <Border Classes="card">
+          <ScrollViewer x:Name="StabilityScroller" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+            <Border Classes="card" MaxWidth="{Binding Bounds.Width, ElementName=StabilityScroller}">
               <StackPanel Spacing="12">
-                <TextBlock Text="Stress de CPU e RAM" Classes="big" />
-                <TextBlock Text="Aplique carga por um período definido e procure divergências nos dados da RAM. A CPU será monitorada durante todo o teste; sem temperatura recente, a carga não inicia." Classes="sub" />
-                <WrapPanel>
-                  <CheckBox x:Name="StressCpu" Content="CPU" IsChecked="True" Margin="0,0,24,8" />
-                  <CheckBox x:Name="StressRam" Content="Verificar RAM" IsChecked="True" Margin="0,0,0,8" />
-                </WrapPanel>
-                <WrapPanel>
-                  <StackPanel Spacing="4" Margin="0,0,16,8">
-                    <TextBlock Text="Duração (min)" />
-                    <NumericUpDown x:Name="StressMinutes" Minimum="1" Maximum="30" Value="5" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Duração do stress em minutos" />
-                  </StackPanel>
-                  <StackPanel Spacing="4" Margin="0,0,16,8">
-                    <TextBlock Text="RAM a testar (MiB)" />
-                    <NumericUpDown x:Name="StressMemory" Minimum="16" Maximum="1024" Value="256" Increment="16" FormatString="0" Width="160" AutomationProperties.Name="Memória do stress em MiB" />
-                  </StackPanel>
-                  <StackPanel Spacing="4" Margin="0,0,0,8">
-                    <TextBlock Text="Limite CPU (°C)" />
-                    <NumericUpDown x:Name="StressThermalLimit" Minimum="60" Maximum="100" Value="90" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Limite de temperatura da CPU no stress" />
-                  </StackPanel>
-                </WrapPanel>
-                <TextBlock Text="O teste aumenta consumo e temperatura. Reserve memória para os outros aplicativos. A proteção monitora a CPU, não a temperatura dos módulos de RAM." Classes="sub" />
-                <Button x:Name="StressStartButton" Content="INICIAR STRESS" Classes="primary" Click="RunStress" />
-                <ContentControl x:Name="StressRunHost" />
-                <TextBlock x:Name="StressResultText" Text="Nenhum stress executado. Resultados e interrupções ficam no histórico e nas exportações da página Benchmark." Classes="sub" />
-                <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
-                  <TextBlock Text="CPU usa as threads disponíveis, reservando uma para RAM quando possível. RAM escreve e verifica padrões em blocos; uma divergência interrompe a carga. O tamanho pedido deve caber em um quarto da memória disponível observada e do orçamento do runtime; essa checagem não reserva RAM nem garante disponibilidade futura. O prazo inclui alocação. Passadas incompletas não contam e zero divergências não comprova estabilidade. Cancelar ou fechar aguarda os workers. Para observar EDAC e logs no período, crie uma referência abaixo antes de iniciar e compare depois. Esses dados não são atribuídos automaticamente ao stress." Classes="sub" />
-                </Expander>
-                <Border Height="1" Background="{DynamicResource Line}" Margin="0,6" />
                 <TextBlock Text="ESTABILIDADE · ERROS DE MEMÓRIA" Classes="label" />
                 <TextBlock Text="Erros reportados pela memória" Classes="big" />
                 <TextBlock Text="Consulte os erros de memória reportados pelo sistema. Os valores acumulam ocorrências e não se limitam ao benchmark atual." Classes="sub" />
@@ -423,103 +395,27 @@
         </TabItem>
       </TabControl>
     </Grid>
-    <ScrollViewer x:Name="BenchPage" IsVisible="False" Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel Margin="32,28" Spacing="20">
-        <StackPanel Spacing="6">
-          <TextBlock Text="RESET BENCH" Classes="h1" />
-          <TextBlock Text="Compare o desempenho da CPU, da memória e do armazenamento." Classes="sub" />
-          <TextBlock x:Name="MachineText" Classes="sub" />
-        </StackPanel>
-        <Border Classes="card">
-          <StackPanel Spacing="12">
-            <TextBlock Text="INTERRUPÇÃO POR TEMPERATURA DA CPU" Classes="label" />
-            <TextBlock Text="Defina a temperatura da CPU que solicita a interrupção dos benchmarks." Classes="sub" />
-            <CheckBox x:Name="ThermalEnabled" Content="Monitorar durante os benchmarks" IsChecked="True" />
-            <StackPanel Orientation="Horizontal" Spacing="12">
-              <TextBlock Text="Limite (°C)" VerticalAlignment="Center" />
-              <NumericUpDown x:Name="ThermalLimit" Minimum="60" Maximum="100" Value="90" Increment="1" Width="120" FormatString="0" />
-            </StackPanel>
-            <TextBlock x:Name="ThermalStateText" Text="Aguardando leitura da CPU…" Classes="sub" />
-            <Button x:Name="SaveSettingsButton" Content="SALVAR CONFIGURAÇÃO" Classes="outline" Click="SavePreferences" />
-            <TextBlock Text="Com o monitoramento ativo, o teste só inicia com uma leitura recente abaixo do limite." Classes="sub" />
-            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
-              <TextBlock Text="O app solicita cancelamento quando a CPU atinge o limite, perde o sensor ou fica 5 s sem atualização. A interrupção depende da resposta dos sensores e do teste, podendo não ser imediata." Classes="sub" />
-            </Expander>
-          </StackPanel>
-        </Border>
-        <Border Classes="card">
-          <StackPanel Spacing="14">
-            <TextBlock Text="CPU · PATH TRACING" Classes="label" />
-            <TextBlock Text="Uma cena, todos os detalhes" Classes="big" />
-            <TextBlock Text="Compare a CPU com uma ou todas as threads ao renderizar a mesma imagem. A duração depende da CPU." Classes="sub" />
-            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
-              <TextBlock Text="A cena tem 960 × 540 pixels e 1024 amostras por pixel. O teste termina ao completar a imagem." Classes="sub" />
-            </Expander>
-            <Image x:Name="RenderImage" Height="250" Stretch="Uniform" />
-            <WrapPanel>
-              <Button x:Name="SingleButton" Content="1 THREAD" Classes="outline" Click="RunSingle" Margin="0,0,8,8" />
-              <Button x:Name="MultiButton" Content="TODAS AS THREADS" Classes="primary" Click="RunMulti" Margin="0,0,0,8" />
-            </WrapPanel>
-            <ContentControl x:Name="RenderRunHost">
-              <StackPanel x:Name="BenchmarkRunPanel" Spacing="12">
-            <TextBlock x:Name="StatusText" Text="Pronto para iniciar." TextWrapping="Wrap" />
-            <ProgressBar x:Name="RunProgress" Minimum="0" Maximum="100" />
-            <Button x:Name="CancelButton" Content="CANCELAR" Classes="outline" IsEnabled="False" Click="CancelRun" />
-              </StackPanel>
-            </ContentControl>
-          </StackPanel>
-        </Border>
-        <Border Classes="card">
-          <StackPanel Spacing="12">
-            <TextBlock Text="CPU · SIMULAÇÃO DE JOGO" Classes="label" />
-            <TextBlock Text="30 mil unidades em batalha" Classes="big" />
-            <TextBlock Text="Avalie a CPU em uma simulação de física, colisões e inteligência artificial." Classes="sub" />
-            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
-              <TextBlock Text="A simulação usa 30 mil unidades, com 2 s de aquecimento seguidos de 10 s de medição." Classes="sub" />
-            </Expander>
-            <Button x:Name="SimButton" Content="INICIAR SIMULAÇÃO" Classes="outline" Click="RunSimulation" />
-            <ContentControl x:Name="SimulationRunHost" />
-          </StackPanel>
-        </Border>
-        <Border Classes="card">
-          <StackPanel Spacing="12">
-            <TextBlock Text="MEMÓRIA RAM" Classes="label" />
-            <TextBlock Text="Meça o tempo de acesso à memória e a quantidade de dados transferida por segundo." Classes="sub" />
-            <TextBlock Text="Latência e largura de banda" Classes="big" />
-            <TextBlock Text="A latência usa cerca de 272 MiB; o teste de banda usa cerca de 2 GiB de RAM. Execute um teste por vez, com memória disponível." Classes="sub" />
-            <WrapPanel>
-              <Button x:Name="LatencyButton" Content="LATÊNCIA" Classes="outline" Click="RunLatency" Margin="0,0,8,8" />
-              <Button x:Name="BandwidthButton" Content="BANDA" Classes="outline" Click="RunBandwidth" Margin="0,0,0,8" />
-            </WrapPanel>
-            <ContentControl x:Name="MemoryRunHost" />
-            <Button x:Name="ReleaseMemoryButton" Content="LIBERAR MEMÓRIA DOS TESTES" Classes="outline" Click="ReleaseTestMemory" />
-            <TextBlock Text="Libera memória temporária do app sem apagar seus resultados. A recuperação pode ocorrer em etapas: aguarde a conclusão e a atualização do monitor do sistema antes de repetir." Classes="sub" />
-            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch">
-              <TextBlock Text="Após sucesso, erro ou cancelamento, uma nova limpeza pode recuperar objetos que ficaram disponíveis depois da coleta anterior. Isso não significa que vários cliques sejam sempre necessários. A ação pode causar breve pausa; o uso total de RAM pode não voltar ao valor anterior e uma nova coleta pode não reduzir o número exibido." Classes="sub" />
-            </Expander>
-            <TextBlock x:Name="MemoryCleanupStatusText" Classes="sub" />
-          </StackPanel>
-        </Border>
-        <Border Classes="card">
-          <StackPanel Spacing="12">
-            <TextBlock Text="DISCO E CARREGAMENTO" Classes="label" />
-            <TextBlock Text="Pasta do volume a testar" Classes="big" />
-            <TextBox x:Name="DiskBenchmarkPath" Watermark="Caminho absoluto de uma pasta existente, por exemplo /home/usuario" />
-            <TextBlock Text="Meça leitura, escrita e carregamento na pasta escolhida. Reserve 1,1 GiB livres; os testes gravam arquivos temporários." Classes="sub" />
-            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
-              <TextBlock Text="Disco: arquivo de 512 MiB, operações sequenciais e testes aleatórios de 4 s cada. A escrita aleatória adiciona volume variável de gravação. Carregamento: pacote de 512 MiB e 1000 arquivos de 64 KiB. Os arquivos exclusivos são removidos ao terminar ou cancelar." Classes="sub" />
-            </Expander>
-            <TextBlock Text="O limite de temperatura monitora a CPU, não o disco." Classes="sub" />
-            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
-              <TextBlock Text="Linux x64 com I/O direto confirmado pelo sistema de arquivos. Se indisponível, o teste informa erro. No Btrfs, apenas os arquivos temporários usam NoCoW/sem compressão; não representa arquivos Btrfs comuns. Não acessa discos brutos. Cache do dispositivo e metadados ainda podem influenciar. O limite térmico acima monitora a CPU, não o disco." Classes="sub" />
-            </Expander>
-            <WrapPanel>
-              <Button x:Name="DiskBenchmarkButton" Content="TESTAR DISCO" Classes="outline" Click="RunDiskBenchmark" Margin="0,0,8,8" />
-              <Button x:Name="LoadingBenchmarkButton" Content="TESTAR CARREGAMENTO" Classes="outline" Click="RunLoadingBenchmark" Margin="0,0,0,8" />
-            </WrapPanel>
-            <ContentControl x:Name="DiskRunHost" />
-          </StackPanel>
-        </Border>
+    <Grid x:Name="BenchPage" IsVisible="False" Grid.Column="1" RowDefinitions="Auto,Auto,*" Margin="24,24">
+      <StackPanel Spacing="6" Margin="0,0,0,18">
+        <TextBlock Text="Benchmark" Classes="h1" />
+        <TextBlock Text="Escolha um componente para medir desempenho ou executar stress." Classes="sub" />
+        <TextBlock x:Name="MachineText" Classes="sub" />
+      </StackPanel>
+      <Border Grid.Row="1" Margin="0,0,0,16">
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+          <TextBlock x:Name="StatusText" Text="Pronto para iniciar." TextWrapping="Wrap" Margin="0,0,16,8" />
+          <ProgressBar x:Name="RunProgress" Grid.Row="1" Minimum="0" Maximum="100" Margin="0,0,16,0" />
+          <Button x:Name="CancelButton" Grid.Column="1" Grid.RowSpan="2" Content="CANCELAR" Classes="outline" IsEnabled="False" Click="CancelRun" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+      <TabControl x:Name="BenchmarkSections" Grid.Row="2" Classes="system-tabs" SelectedIndex="0"
+                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <TabControl.ItemsPanel>
+          <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+        </TabControl.ItemsPanel>
+        <TabItem Header="Visão geral">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Margin="0,16,0,0">
+            <StackPanel Spacing="20">
         <Border Classes="card">
           <StackPanel Spacing="12">
             <TextBlock Text="REGISTRO DESTA SESSÃO" Classes="label" />
@@ -557,7 +453,249 @@
             <TextBox x:Name="HistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140" MaxHeight="360" />
           </StackPanel>
         </Border>
-      </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+        <TabItem Header="CPU">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Margin="0,16,0,0">
+            <StackPanel Spacing="20">
+        <Border Classes="card">
+          <StackPanel Spacing="14">
+            <TextBlock Text="CPU · PATH TRACING" Classes="label" />
+            <TextBlock Text="Uma cena, todos os detalhes" Classes="big" />
+            <TextBlock Text="Compare a CPU com uma ou todas as threads ao renderizar a mesma imagem. A duração depende da CPU." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="A cena tem 960 × 540 pixels e 1024 amostras por pixel. O teste termina ao completar a imagem." Classes="sub" />
+            </Expander>
+            <Image x:Name="RenderImage" Height="250" Stretch="Uniform" />
+            <WrapPanel>
+              <Button x:Name="SingleButton" Content="1 THREAD" Classes="outline" Click="RunSingle" Margin="0,0,8,8" />
+              <Button x:Name="MultiButton" Content="TODAS AS THREADS" Classes="primary" Click="RunMulti" Margin="0,0,0,8" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="CPU · SIMULAÇÃO DE JOGO" Classes="label" />
+            <TextBlock Text="30 mil unidades em batalha" Classes="big" />
+            <TextBlock Text="Avalie a CPU em uma simulação de física, colisões e inteligência artificial." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="A simulação usa 30 mil unidades, com 2 s de aquecimento seguidos de 10 s de medição." Classes="sub" />
+            </Expander>
+            <Button x:Name="SimButton" Content="INICIAR SIMULAÇÃO" Classes="outline" Click="RunSimulation" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Stress de CPU" Classes="big" />
+            <TextBlock Text="Aplique carga nas threads disponíveis da CPU por um período definido. A proteção térmica da CPU é obrigatória; sem leitura recente, o teste não inicia." Classes="sub" />
+            <WrapPanel>
+              <StackPanel Spacing="4" Margin="0,0,16,8">
+                <TextBlock Text="Duração (min)" />
+                <NumericUpDown x:Name="CpuStressMinutes" Minimum="1" Maximum="30" Value="5" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Duração do stress de CPU em minutos" />
+              </StackPanel>
+
+              <StackPanel Spacing="4" Margin="0,0,0,8">
+                <TextBlock Text="Limite CPU (°C)" />
+                <NumericUpDown x:Name="CpuStressLimit" Minimum="60" Maximum="100" Value="90" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Limite térmico da CPU no stress de CPU" />
+              </StackPanel>
+            </WrapPanel>
+            <TextBlock Text="O teste aumenta consumo e temperatura. A proteção monitora a CPU, não a temperatura dos módulos de RAM." Classes="sub" />
+            <Button x:Name="CpuStressStartButton" Content="INICIAR STRESS DE CPU" Classes="primary" Click="RunCpuStress" />
+            <TextBlock x:Name="CpuStressResultText" Text="Nenhum stress de CPU executado." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch">
+              <TextBlock Text="A carga usa as threads disponíveis com operações de ponto flutuante e inteiras. Zero erros não comprova estabilidade. Cancelar aguarda os workers. EDAC e logs continuam em Sistema e sensores → Estabilidade; não são atribuídos automaticamente ao teste." Classes="sub" />
+            </Expander>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Resultados deste componente" Classes="big" />
+            <TextBox x:Name="CpuHistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico de Cpu" />
+            <Expander Header="Visão geral de todos os testes" HorizontalAlignment="Stretch">
+              <TextBox Text="{Binding Text, ElementName=HistoryText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico geral de benchmarks" />
+            </Expander>
+            <TextBlock Text="Exportação e gerenciamento do histórico na aba Visão geral. Ajustes térmicos dos benchmarks na aba Configurações; cada stress tem seu próprio limite obrigatório." Classes="sub" />
+          </StackPanel>
+        </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Memória RAM">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Margin="0,16,0,0">
+            <StackPanel Spacing="20">
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="MEMÓRIA RAM" Classes="label" />
+            <TextBlock Text="Meça o tempo de acesso à memória e a quantidade de dados transferida por segundo." Classes="sub" />
+            <TextBlock Text="Latência e largura de banda" Classes="big" />
+            <TextBlock Text="A latência usa cerca de 272 MiB; o teste de banda usa cerca de 2 GiB de RAM. Execute um teste por vez, com memória disponível." Classes="sub" />
+            <WrapPanel>
+              <Button x:Name="LatencyButton" Content="LATÊNCIA" Classes="outline" Click="RunLatency" Margin="0,0,8,8" />
+              <Button x:Name="BandwidthButton" Content="BANDA" Classes="outline" Click="RunBandwidth" Margin="0,0,0,8" />
+            </WrapPanel>
+            <Button x:Name="ReleaseMemoryButton" Content="LIBERAR MEMÓRIA DOS TESTES" Classes="outline" Click="ReleaseTestMemory" />
+            <TextBlock Text="Libera memória temporária do app sem apagar seus resultados. A recuperação pode ocorrer em etapas: aguarde a conclusão e a atualização do monitor do sistema antes de repetir." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch">
+              <TextBlock Text="Após sucesso, erro ou cancelamento, uma nova limpeza pode recuperar objetos que ficaram disponíveis depois da coleta anterior. Isso não significa que vários cliques sejam sempre necessários. A ação pode causar breve pausa; o uso total de RAM pode não voltar ao valor anterior e uma nova coleta pode não reduzir o número exibido." Classes="sub" />
+            </Expander>
+            <TextBlock x:Name="MemoryCleanupStatusText" Classes="sub" />
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Stress de RAM" Classes="big" />
+            <TextBlock Text="Escreva e verifique padrões na memória por um período definido. A proteção térmica da CPU é obrigatória; sem leitura recente, o teste não inicia." Classes="sub" />
+            <WrapPanel>
+              <StackPanel Spacing="4" Margin="0,0,16,8">
+                <TextBlock Text="Duração (min)" />
+                <NumericUpDown x:Name="RamStressMinutes" Minimum="1" Maximum="30" Value="5" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Duração do stress de RAM em minutos" />
+              </StackPanel>
+              <StackPanel Spacing="4" Margin="0,0,16,8">
+<TextBlock Text="RAM a testar (MiB)" />
+<NumericUpDown x:Name="StressMemory" Minimum="16" Maximum="1024" Value="256" Increment="16" FormatString="0" Width="160" AutomationProperties.Name="Memória do stress em MiB" />
+</StackPanel>
+              <StackPanel Spacing="4" Margin="0,0,0,8">
+                <TextBlock Text="Limite CPU (°C)" />
+                <NumericUpDown x:Name="RamStressLimit" Minimum="60" Maximum="100" Value="90" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Limite térmico da CPU no stress de RAM" />
+              </StackPanel>
+            </WrapPanel>
+            <TextBlock Text="O teste aumenta consumo e temperatura. A proteção monitora a CPU, não a temperatura dos módulos de RAM." Classes="sub" />
+            <Button x:Name="RamStressStartButton" Content="INICIAR STRESS DE RAM" Classes="primary" Click="RunRamStress" />
+            <TextBlock x:Name="RamStressResultText" Text="Nenhum stress de RAM executado." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch">
+              <TextBlock Text="O tamanho deve caber em um quarto da memória disponível observada e do orçamento do runtime. Essa checagem não reserva RAM nem garante disponibilidade futura. O prazo inclui alocação. Passadas incompletas não contam e uma divergência interrompe o teste. Zero erros não comprova estabilidade. Cancelar aguarda os workers. EDAC e logs continuam em Sistema e sensores → Estabilidade; não são atribuídos automaticamente ao teste." Classes="sub" />
+            </Expander>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Resultados deste componente" Classes="big" />
+            <TextBox x:Name="RamHistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico de Ram" />
+            <Expander Header="Visão geral de todos os testes" HorizontalAlignment="Stretch">
+              <TextBox Text="{Binding Text, ElementName=HistoryText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico geral de benchmarks" />
+            </Expander>
+            <TextBlock Text="Exportação e gerenciamento do histórico na aba Visão geral. Ajustes térmicos dos benchmarks na aba Configurações; cada stress tem seu próprio limite obrigatório." Classes="sub" />
+          </StackPanel>
+        </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+        <TabItem Header="GPU">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Margin="0,16,0,0">
+            <StackPanel Spacing="20">
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Stress de GPU" Classes="big" />
+            <TextBlock Text="Escolha qual placa de vídeo receberá a carga. A detecção inclui GPUs integradas e dedicadas disponíveis no Vulkan." Classes="sub" />
+            <TextBlock x:Name="GpuDetectionText" Text="Aguardando detecção automática…" Classes="sub" />
+            <TextBlock Text="GPU a testar" />
+            <ComboBox x:Name="GpuSelector" HorizontalAlignment="Stretch" PlaceholderText="Selecione uma GPU" SelectionChanged="GpuSelectionChanged" AutomationProperties.Name="GPU a testar">
+              <ComboBox.ItemTemplate>
+                <DataTemplate><TextBlock Text="{Binding Label}" TextWrapping="Wrap" /></DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock x:Name="GpuSelectionText" Text="Selecione uma GPU para verificar a disponibilidade do stress." Classes="sub" />
+            <Button x:Name="GpuRefreshButton" Content="ATUALIZAR GPUs" Classes="outline" Click="RefreshGpuDevices" />
+            <WrapPanel>
+              <StackPanel Spacing="4" Margin="0,0,16,8">
+                <TextBlock Text="Duração (min)" />
+                <NumericUpDown x:Name="GpuMinutes" Minimum="1" Maximum="5" Value="1" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Duração do stress GPU em minutos" />
+              </StackPanel>
+              <StackPanel Spacing="4" Margin="0,0,0,8">
+                <TextBlock Text="Limite GPU (°C)" />
+                <NumericUpDown x:Name="GpuLimit" Minimum="60" Maximum="90" Value="80" Increment="1" FormatString="0" Width="140" AutomationProperties.Name="Limite térmico da GPU escolhida" />
+              </StackPanel>
+            </WrapPanel>
+            <TextBlock Text="A carga aumenta consumo e temperatura. A proteção térmica da GPU é obrigatória. Acompanhe abaixo a cena processada pela placa escolhida." Classes="sub" />
+            <Button x:Name="GpuStartButton" Content="INICIAR STRESS DA GPU" Classes="primary" Click="RunGpuStress" IsEnabled="False" />
+            <StackPanel x:Name="GpuPreviewPanel" Spacing="8">
+              <TextBlock Text="Cena da GPU" Classes="big" />
+              <Grid Height="250" Background="Black" ClipToBounds="True">
+                <Image x:Name="GpuPreviewImage" Stretch="Uniform" AutomationProperties.Name="Cena renderizada pela GPU durante o stress" />
+                <TextBlock x:Name="GpuPreviewPlaceholder" Text="A cena aparecerá aqui ao iniciar o teste." Classes="sub" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="16" />
+              </Grid>
+              <TextBlock x:Name="GpuPreviewStatusText" Text="Inicie o stress para acompanhar a cena gerada pela GPU selecionada." Classes="sub" />
+              <TextBlock Text="Prévia da carga real, atualizada até 5 vezes por segundo. A frequência da prévia não representa o desempenho da GPU." Classes="sub" />
+            </StackPanel>
+            <TextBlock x:Name="GpuResultText" Text="Nenhum stress de GPU executado. Resultados e interrupções ficam no histórico abaixo e nas exportações." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="Somente a GPU selecionada recebe a carga. NVIDIA usa NVML; Intel e AMD precisam expor sensores hwmon ligados ao mesmo dispositivo PCI. Sem temperatura própria válida, o teste não inicia. Cancelar ou fechar aguarda o frame em execução; falhas do driver podem atrasar o encerramento. A cena Vulkan é renderizada em 640×360 e copiada para a prévia. Essa cópia tem custo e pode afetar a contagem de frames. Não há score comparável ao Windows ou certificação de estabilidade." Classes="sub" />
+            </Expander>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Resultados deste componente" Classes="big" />
+            <TextBox x:Name="GpuHistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico de Gpu" />
+            <Expander Header="Visão geral de todos os testes" HorizontalAlignment="Stretch">
+              <TextBox Text="{Binding Text, ElementName=HistoryText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico geral de benchmarks" />
+            </Expander>
+            <TextBlock Text="Exportação e gerenciamento do histórico na aba Visão geral. Ajustes térmicos dos benchmarks na aba Configurações; cada stress tem seu próprio limite obrigatório." Classes="sub" />
+          </StackPanel>
+        </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Disco">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Margin="0,16,0,0">
+            <StackPanel Spacing="20">
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="DISCO E CARREGAMENTO" Classes="label" />
+            <TextBlock Text="Pasta do volume a testar" Classes="big" />
+            <TextBox x:Name="DiskBenchmarkPath" Watermark="Caminho absoluto de uma pasta existente, por exemplo /home/usuario" />
+            <TextBlock Text="Meça leitura, escrita e carregamento na pasta escolhida. Reserve 1,1 GiB livres; os testes gravam arquivos temporários." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="Disco: arquivo de 512 MiB, operações sequenciais e testes aleatórios de 4 s cada. A escrita aleatória adiciona volume variável de gravação. Carregamento: pacote de 512 MiB e 1000 arquivos de 64 KiB. Os arquivos exclusivos são removidos ao terminar ou cancelar." Classes="sub" />
+            </Expander>
+            <TextBlock Text="O limite de temperatura monitora a CPU, não o disco." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="Linux x64 com I/O direto confirmado pelo sistema de arquivos. Se indisponível, o teste informa erro. No Btrfs, apenas os arquivos temporários usam NoCoW/sem compressão; não representa arquivos Btrfs comuns. Não acessa discos brutos. Cache do dispositivo e metadados ainda podem influenciar. O limite térmico em Configurações monitora a CPU, não o disco." Classes="sub" />
+            </Expander>
+            <WrapPanel>
+              <Button x:Name="DiskBenchmarkButton" Content="TESTAR DISCO" Classes="outline" Click="RunDiskBenchmark" Margin="0,0,8,8" />
+              <Button x:Name="LoadingBenchmarkButton" Content="TESTAR CARREGAMENTO" Classes="outline" Click="RunLoadingBenchmark" Margin="0,0,0,8" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Resultados deste componente" Classes="big" />
+            <TextBox x:Name="DiskHistoryText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico de Disk" />
+            <Expander Header="Visão geral de todos os testes" HorizontalAlignment="Stretch">
+              <TextBox Text="{Binding Text, ElementName=HistoryText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="360" AutomationProperties.Name="Histórico geral de benchmarks" />
+            </Expander>
+            <TextBlock Text="Exportação e gerenciamento do histórico na aba Visão geral. Ajustes térmicos dos benchmarks na aba Configurações; cada stress tem seu próprio limite obrigatório." Classes="sub" />
+          </StackPanel>
+        </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Configurações">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" Margin="0,16,0,0">
+            <StackPanel Spacing="20">
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="INTERRUPÇÃO POR TEMPERATURA DA CPU" Classes="label" />
+            <TextBlock Text="Defina a temperatura da CPU que solicita a interrupção dos benchmarks." Classes="sub" />
+            <CheckBox x:Name="ThermalEnabled" Content="Monitorar durante os benchmarks" IsChecked="True" />
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="Limite (°C)" VerticalAlignment="Center" />
+              <NumericUpDown x:Name="ThermalLimit" Minimum="60" Maximum="100" Value="90" Increment="1" Width="120" FormatString="0" />
+            </StackPanel>
+            <TextBlock x:Name="ThermalStateText" Text="Aguardando leitura da CPU…" Classes="sub" />
+            <Button x:Name="SaveSettingsButton" Content="SALVAR CONFIGURAÇÃO" Classes="outline" Click="SavePreferences" />
+            <TextBlock Text="Com o monitoramento ativo, o teste só inicia com uma leitura recente abaixo do limite." Classes="sub" />
+            <Expander Header="Mais detalhes" HorizontalAlignment="Stretch" IsExpanded="False">
+              <TextBlock Text="O app solicita cancelamento quando a CPU atinge o limite, perde o sensor ou fica 5 s sem atualização. A interrupção depende da resposta dos sensores e do teste, podendo não ser imediata." Classes="sub" />
+            </Expander>
+          </StackPanel>
+        </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+      </TabControl>
+    </Grid>
   </Grid>
 </Window>
