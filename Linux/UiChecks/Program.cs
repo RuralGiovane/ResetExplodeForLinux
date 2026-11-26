@@ -7,6 +7,12 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ResetExplode;
 
+if (args.Length == 2 && args[0] == "--gpu-interaction")
+{
+    GpuInteractionChecks.Run(args[1]);
+    return;
+}
+
 if (args.Length == 3 && args[0] == "--gpu-lifecycle")
 {
     GpuLifecycleChecks.Run(args[1], args[2]);

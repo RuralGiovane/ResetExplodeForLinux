@@ -9,6 +9,7 @@ Em Benchmark → GPU → Stress de GPU, aguarde a detecção, selecione uma GPU,
 - [x] Carga curta e cancelamento pela UI, bloqueios recíprocos com benchmarks e controles liberados ao terminar.
 - [x] Histórico temporário: GPU/PCI, proteção térmica GPU, cancelled e ausência de métricas parciais.
 - [x] Conteúdo visual conferido em 945×993, sem corte horizontal.
+- [x] Teclado, dropdown e retorno de foco em 945×1029, com aceite de legibilidade do usuário (26/11/2026).
 - [ ] Conferir teclado, dropdown e layout no tamanho mínimo real (o gerenciador de janelas impediu validar 820×620).
 - [x] Fechamento da janela durante carga GPU com prévia ativa.
 - [x] Conferir reabertura após fechamento sob carga (UiChecks opt-in, 26/11/2026; mesma sessão gráfica, nova MainWindow e histórico isolado).
@@ -80,3 +81,22 @@ dotnet Linux/UiChecks/bin/Release/net8.0/ResetExplode.UiChecks.dll --gpu-lifecyc
 ```
 
 O endereço é o observado nesta máquina, não um padrão. Relatórios deste teste comprovam a serialização dos cancelamentos; conferir salvamento pelo diálogo e relatório de uma execução prolongada concluída ainda exige validação adicional.
+
+## Checagem guiada de teclado e diálogo
+
+O modo abaixo exige um operador na sessão gráfica. Usa configuração e histórico temporários, com um registro **sintético** de cancelamento claramente identificado; não inicia carga GPU. Os botões de benchmark e stress ficam bloqueados neste harness. Escolha um diretório vazio para as evidências:
+
+```bash
+dotnet build Linux/UiChecks/ResetExplode.UiChecks.csproj -c Release
+dotnet Linux/UiChecks/bin/Release/net8.0/ResetExplode.UiChecks.dll --gpu-interaction /tmp/reset-gpu-interaction
+```
+
+1. No seletor de GPU, use Alt+↓, escolha com setas e confirme com Enter. Use Tab e Shift+Tab para sair e retornar ao seletor. Confira visualmente foco, legibilidade e ausência de cortes.
+2. Cancele o primeiro diálogo de salvar. O teste verifica a mensagem, a liberação dos controles e a ausência de arquivos no diretório de evidências.
+3. Nos dois diálogos seguintes, salve nos caminhos exatos impressos no terminal: `gpu-dialog.html` e `gpu-dialog.json`, dentro do diretório escolhido.
+
+O harness chama os botões reais de exportação, sem substituir o StorageProvider. Confere os arquivos, o registro sintético cancelado sem score/métricas e a preservação do histórico isolado. Grava `interaction-checks.txt`, incluindo falhas, e retorna código 1 se uma etapa falhar, a janela for fechada antes do fim ou houver dez minutos sem concluir a etapa. Os relatórios e o log permanecem no destino; a configuração e o histórico temporários são removidos ao encerrar normalmente o harness.
+
+O tamanho recebido do compositor é registrado separadamente. Aprovação em outra área não comprova o mínimo nativo de 820×620; eventos observados também não substituem o aceite visual do operador. Esta fixture não comprova carga real nem exportação de uma execução prolongada concluída.
+
+Na sessão de 26/11/2026, teclado/dropdown/foco passaram em 945×1029 e o usuário confirmou legibilidade. O primeiro cancelamento do diálogo também passou. O usuário relatou a abertura das opções de salvar HTML/JSON, mas não salvou os arquivos; gravação e conteúdo pelo diálogo permanecem pendentes. O bloqueio dos botões de carga é deliberado neste modo e não afeta o aplicativo normal. Evidências e limites no [registro da entrega](0007-historico/0010-2026-11-26-interacao-gpu-e-dialogos.md).
