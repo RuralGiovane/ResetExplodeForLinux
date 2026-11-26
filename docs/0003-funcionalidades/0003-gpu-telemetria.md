@@ -1,6 +1,6 @@
 # Telemetria de GPU
 
-**Estado Linux em 25/11/2026:** Parcial.
+**Estado Linux em 26/11/2026:** Parcial; inventário ampliado e telemetria por driver.
 
 ## Finalidade
 
@@ -20,6 +20,8 @@ As leituras AMD/Intel agora entram em **Sistema e sensores → Sensores**, com f
 A identidade DRM usa o dispositivo PCI, independentemente do número cardN. Conectores são ignorados e PCI duplicado não duplica as leituras. Os links da classe DRM são resolvidos antes dos links relativos internos. O coletor não inicia Vulkan, carga gráfica ou comandos externos e não escreve em sysfs. NVIDIA continua no backend NVML existente.
 
 ## Código e referência Windows
+
+- [Linux/Hardware/Gpu/LinuxGpuInventory.cs](../../Linux/Hardware/Gpu/LinuxGpuInventory.cs)
 
 - [Linux/Hardware/Gpu/LinuxDrmSensors.cs](../../Linux/Hardware/Gpu/LinuxDrmSensors.cs)
 - [Linux/Hardware/Interop/LinuxNvml.cs](../../Linux/Hardware/Interop/LinuxNvml.cs)
@@ -46,6 +48,14 @@ dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --drm-sen
 Fixtures cobrem múltiplos dispositivos, PCI duplicado, renumeração, links relativos em cards simbólicos, unidades/cultura, zero/ausência, percentuais e memória inválidos, overflow, i915 legado/multi-GT, Xe, remoção, cancelamento e integração com telemetria. Não substituem validação em hardware AMD/Xe real. Em 25/11/2026, o diagnóstico real identificou Intel/i915 no PCI 0000:00:02.0 e leu clocks medido/solicitado de GT0 (350 MHz na amostra). Build Avalonia/UiChecks e suíte completa net8.0 aprovados. Não foi iniciada carga de stress.
 
 Fontes: [AMDGPU — memória](https://kernel.org/doc/html/latest/gpu/amdgpu/driver-misc.html), [AMDGPU — métricas](https://docs.kernel.org/gpu/amdgpu/thermal.html), [i915 — sysfs GT](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/gt/intel_gt_sysfs_pm.c), [Xe — frequência GT](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/xe/xe_gt_freq.c).
+
+### Inventário de especificações
+
+Em **Benchmark → GPU → Identificação e especificações das GPUs**, a detecção consulta controladores de vídeo PCI independentemente de Vulkan. Exibe fabricante, endereço e IDs PCI/subsistema, revisão, driver, versão do módulo, VBIOS, link PCIe atual/máximo reportado e memória quando disponíveis. NVML associa nome, VBIOS e memória por PCI; amdgpu fornece memória pelo sysfs. A enumeração Vulkan complementa modelo, tipo e versão da API somente com PCI não ambíguo. Atualizar GPUs renova os dados.
+
+Não há inferência de VRAM integrada a partir da RAM, nem banco de especificações comerciais (núcleos, litografia, tipo/barramento de memória). PCIe atual pode diminuir em repouso; máximo reportado não mede throughput. Ausências permanecem explícitas. O inventário não é persistido nem incluído no relatório de benchmarks, cujo esquema permanece igual.
+
+Diagnóstico somente leitura: `dotnet Linux/SmokeTests/bin/Release/net8.0/ResetExplode.SmokeTests.dll --gpu-inventory`. Esse comando consulta PCI/sysfs/NVML; os campos Vulkan são complementados pela interface. Fixtures cobrem IDs/links/unidades, ausência, negativos, associação NVML por PCI, ambiguidade Vulkan, remoção e cancelamento. Leitura real aprovada para Intel/i915 e GTX 1650; AMD/Xe continuam sem hardware real disponível. Referência dos atributos: [ABI PCI do kernel](https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-bus-pci).
 
 Há aceite histórico NVIDIA; validar novamente ao alterar backend, driver ou mapeamento de sensores. GPU/Vulkan está em ficha separada.
 

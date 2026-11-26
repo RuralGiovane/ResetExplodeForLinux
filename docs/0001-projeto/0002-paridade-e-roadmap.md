@@ -1,12 +1,12 @@
 # Paridade e próximas entregas
 
-Estado em 25/11/2026. Não há percentual global de conclusão: presença de arquivo e número de telas não medem equivalência.
+Estado em 26/11/2026. Não há percentual global de conclusão: presença de arquivo e número de telas não medem equivalência.
 
 | Domínio | Linux atual | Lacuna |
 | --- | --- | --- |
 | Sistema/sensores | /proc, /sys, DMI, hwmon, cpufreq | RAM por módulo/SPD e cobertura ampliada |
 | Dashboard | Resumo da máquina e leituras ao vivo | Gráficos/histórico visual e composição Windows completa |
-| GPU | NVML NVIDIA e DRM AMD/Intel somente leitura; hwmon | Especificações completas e validação real AMD/Xe |
+| GPU | NVML/DRM/hwmon e inventário PCI, driver, VBIOS, memória, PCIe e API Vulkan | Especificações comerciais adicionais e validação real AMD/Xe |
 | CPU/RAM benchmark | Render/simulação compartilhados, latência/banda | Repetibilidade e comparação Windows/Linux |
 | Disco/carregamento | I/O direto Linux x64 | Metodologia/filas/tamanhos diferentes do Windows |
 | Armazenamento/SMART | Inventário, montagens, smartctl, exportação | Validar por dispositivo/controlador |
@@ -27,3 +27,16 @@ O histórico registra a orientação de concluir funcionalidades obrigatórias a
 Frente iniciada: GPU/stress gráfico. Prévia gráfica e correção de oscilação em janelas menores implementadas, com regressão gráfica das 14 abas em quatro tamanhos de conteúdo. Continua pendente a ampliação da validação real de GPU (cargas prolongadas e sensores adicionais). Outros blocos possíveis: completar rede, jogos/overlay e ferramentas de sistema. Esta lista descreve lacunas, não uma escolha já aprovada de biblioteca, backend ou cronograma.
 
 Ao iniciar uma frente: localizar a referência Windows, definir o comportamento Linux esperado, registrar diferenças inevitáveis de plataforma e escrever critérios de aceite. Não considerar uma substituição funcional automaticamente equivalente em desempenho.
+
+Em 26/11, reabertura após fechamento sob carga e novo cancelamento foram verificados na GTX 1650, com histórico isolado e relatórios pelo builder. O teste solicitado de 300 s atingiu o limite de 80 °C e foi interrompido corretamente; não recebeu aceite de conclusão prolongada. Inventário ampliado e regressão das 56 combinações de layout aprovados. Permanecem validação nativa de teclado/dropdown e diálogo de salvar, carga prolongada concluída, hardware AMD/Xe e camada Khronos. Detalhes no [roteiro GPU](../VALIDACAO_GPU.md).
+
+## Retomada combinada — 26/11/2026
+
+O usuário escolheu trabalhar por etapas, primeiro nos tópicos 1 (validação GPU) e 2 (cobertura e especificações). Continuar nessas frentes antes de iniciar os demais blocos do roadmap.
+
+1. Conferir pela interface nativa o teclado, foco e dropdown da GPU e salvar relatórios HTML/JSON pelo diálogo. Verificar os arquivos e o comportamento ao cancelar o diálogo. O harness atual valida o builder, não o diálogo; o compositor impôs 945×993 e ainda não permitiu comprovar o mínimo nativo de 820×620.
+2. Retomar a validação prolongada apenas com condições térmicas adequadas, preservando o limite de 80 °C. A tentativa de 300 s foi interrompida nesse limite; não registrar como concluída nem elevar o limite para forçar aprovação. Conferir histórico e relatórios de uma execução concluída e de interrupções.
+3. Validar em hardware AMD e Intel/Xe quando houver acesso. Esta máquina tem GTX 1650 e Intel UHD/i915; esta última não expõe temperatura própria e deve continuar bloqueada para stress. Fixtures não substituem essa validação física. Conferir também a camada Khronos quando disponível.
+4. Avaliar as especificações comerciais ainda ausentes (núcleos, litografia e tipo/barramento de memória), com fontes verificáveis e associação inequívoca ao modelo. O inventário atual já apresenta PCI, driver, revisão, VBIOS, memória reportada, PCIe e modelo/tipo/API Vulkan; não inferir dados ausentes.
+
+Ponto de partida: [registro desta entrega](../0007-historico/0009-2026-11-26-inventario-e-validacao-gpu.md) e [checklist de validação](../VALIDACAO_GPU.md). Builds e suíte net8.0 aprovados; 56 combinações de layout e fechamento/reabertura sob carga aprovados. Evidências temporárias desta sessão ficaram em `/tmp/reset-gpu-validation-20261126` e `/tmp/reset-gpu-layout-20261126`; esses diretórios podem desaparecer, portanto o registro versionado é a referência de continuidade.

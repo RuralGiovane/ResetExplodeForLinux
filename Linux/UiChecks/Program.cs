@@ -7,6 +7,12 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ResetExplode;
 
+if (args.Length == 3 && args[0] == "--gpu-lifecycle")
+{
+    GpuLifecycleChecks.Run(args[1], args[2]);
+    return;
+}
+
 // Opt-in graphical regression: requires a desktop, reads telemetry, never starts workloads.
 string temporary = Path.Combine(Path.GetTempPath(), "reset-ui-checks-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(temporary);
@@ -49,6 +55,7 @@ void Next()
     root.Width = c.size.Width; root.Height = c.size.Height;
     window.FindControl<Button>(c.page == 0 ? "SystemNav" : "BenchNav")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     (c.page == 0 ? system : bench).SelectedIndex = c.tab;
+    window.FindControl<Expander>("GpuInventoryExpander")!.IsExpanded = c.page == 1 && c.tab == 3;
     layouts = 0; signatures.Clear(); clientSizes.Clear(); tick = 0;
 }
 timer.Tick += (_, _) =>

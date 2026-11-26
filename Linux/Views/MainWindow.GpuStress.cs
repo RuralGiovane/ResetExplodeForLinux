@@ -66,8 +66,14 @@ public partial class MainWindow
         UpdateGpuControls();
         try
         {
+            var inventory = await Task.Run(LinuxGpuInventory.Read);
+            if (_closeWhenStopped) return;
+            GpuInventoryEntries.ItemsSource = inventory;
+            GpuInventoryStatus.Text = inventory.Count == 0 ? "Nenhuma GPU PCI identificada. Verifique o acesso ao sysfs."
+                : "Dados reportados pelo driver. Link atual pode variar com economia de energia. Memória de integrada não é estimada pela RAM do sistema.";
             var choices = await Task.Run(GpuStressDiscovery.Collect);
             if (_closeWhenStopped) return;
+            GpuInventoryEntries.ItemsSource = LinuxGpuInventory.WithVulkan(inventory, choices.Select(c => c.Device).ToArray());
             GpuSelector.ItemsSource = choices;
             GpuSelector.SelectedItem = GpuStressDiscovery.RestoreSelection(choices, selectedPci);
             GpuDetectionText.Text = choices.Count == 0 ? "Nenhuma GPU Vulkan encontrada. Verifique o driver e atualize a lista."

@@ -8,6 +8,7 @@ namespace ResetExplode.Hardware;
 public sealed record RenderGpu(string Name, string? PciAddress, uint VendorId, bool Hardware)
 {
     public string Kind { get; init; } = "Tipo não informado";
+    public string? ApiVersion { get; init; }
 }
 public sealed record GpuRenderProgress(long Frames, double Seconds, double Temperature);
 public sealed record GpuRenderResult(string Device, string PciAddress, long Frames, double Seconds, int NonBlackPixels);
@@ -93,7 +94,8 @@ public sealed unsafe class VulkanGpuRenderer : IDisposable
             }
             result.Add((device, new(name, address, basic.VendorID,
                 basic.DeviceType is PhysicalDeviceType.DiscreteGpu or PhysicalDeviceType.IntegratedGpu)
-                { Kind = basic.DeviceType switch { PhysicalDeviceType.IntegratedGpu => "Integrada", PhysicalDeviceType.DiscreteGpu => "Dedicada",
+                { ApiVersion = $"{(basic.ApiVersion >> 22) & 0x7f}.{(basic.ApiVersion >> 12) & 0x3ff}.{basic.ApiVersion & 0xfff}",
+                    Kind = basic.DeviceType switch { PhysicalDeviceType.IntegratedGpu => "Integrada", PhysicalDeviceType.DiscreteGpu => "Dedicada",
                     PhysicalDeviceType.Cpu => "Software", PhysicalDeviceType.VirtualGpu => "Virtual", _ => "Outro" } }));
         }
         return result;

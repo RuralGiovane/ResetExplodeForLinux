@@ -1,4 +1,4 @@
-# GPU Vulkan — atualizado em 25/11/2026
+# GPU Vulkan — atualizado em 26/11/2026
 
 ## Pela interface
 
@@ -11,7 +11,7 @@ Em Benchmark → GPU → Stress de GPU, aguarde a detecção, selecione uma GPU,
 - [x] Conteúdo visual conferido em 945×993, sem corte horizontal.
 - [ ] Conferir teclado, dropdown e layout no tamanho mínimo real (o gerenciador de janelas impediu validar 820×620).
 - [x] Fechamento da janela durante carga GPU com prévia ativa.
-- [ ] Conferir reabertura após fechamento sob carga.
+- [x] Conferir reabertura após fechamento sob carga (UiChecks opt-in, 26/11/2026; mesma sessão gráfica, nova MainWindow e histórico isolado).
 - [ ] Concluir teste prolongado e conferir relatórios HTML/JSON pelo diálogo.
 - [ ] Validar carga real AMD/Intel com sensor hwmon próprio; por enquanto testado com fixtures.
 
@@ -63,3 +63,20 @@ spirv-val --target-env vulkan1.1 Linux/Hardware/Gpu/Shaders/burn.frag.spv
 O aplicativo agora aceita alocações positivas menores que seu mínimo solicitado, evitando alternância entre 589 e 620 px de altura útil. Títulos e valores longos podem quebrar linha. O projeto UiChecks verifica as 14 abas em quatro tamanhos de conteúdo (56 combinações), incluindo 820×589 e 820×620; build e execução aprovados. O botão Cancelar desabilitado permanece legível no tema escuro.
 
 A primeira execução registrou mudança de tamanho nativo na aba Maker; a repetição completa passou sem alteração da correção de resize. Os tamanhos de conteúdo são impostos pelo teste, não garantias de tamanho nativo: o gerenciador de janelas pode determinar outra área. Capturas revisadas das abas de sistema e Benchmark em 820 px; teclado e dropdown no tamanho mínimo nativo continuam pendentes. Nenhuma carga real de GPU foi iniciada nesta rodada.
+
+## Inventário e ciclo de vida — 26/11/2026
+
+- Inventário PCI/sysfs/NVML em Benchmark → GPU → Identificação e especificações das GPUs. Modelo/tipo/API Vulkan complementam o inventário quando há associação PCI única. Funciona parcialmente mesmo quando Vulkan está indisponível.
+- Leitura real: Intel UHD/i915 e GTX 1650/NVIDIA; NVML reportou 4 GiB e VBIOS na dedicada. Corrigida resolução de links relativos do driver sob um dispositivo PCI simbólico, com fixture de regressão.
+- Solicitado stress CLI de 300 s na GTX 1650, limite de 80 °C. A execução terminou com código 3 ao alcançar 80 °C: proteção acionada, **não** teste prolongado concluído. Nenhum resultado parcial publicado. O limite não foi aumentado para completar o teste.
+- UiChecks opt-in fechou durante prévia ativa, reabriu, iniciou nova carga e cancelou. Dois registros `Cancelled`, PCI correto, sem score/métricas parciais; HTML/JSON gerados pelo builder com esse histórico real. O teste aciona os controles Avalonia e não exercita o diálogo nativo de salvar.
+- Janela nativa permaneceu em 945×993, apesar de solicitar 820×620. Regressão de conteúdo: 14 abas × quatro tamanhos aprovada, incluindo o inventário expandido. Não equivale a validar teclado/dropdown no tamanho nativo mínimo.
+- AMD e Intel/Xe não estão presentes nesta máquina. Intel/i915 não expõe sensor térmico próprio; stress continua bloqueado. Camada Khronos não instalada. Essas validações permanecem pendentes.
+
+Após build de UiChecks, o teste abaixo inicia **carga real** na GPU explicitamente escolhida, limitada a 80 °C. Usa configuração/histórico temporários e grava capturas e relatórios no diretório informado. Não executar junto de outros benchmarks.
+
+```bash
+dotnet Linux/UiChecks/bin/Release/net8.0/ResetExplode.UiChecks.dll --gpu-lifecycle 0000:01:00.0 /tmp/reset-gpu-validation
+```
+
+O endereço é o observado nesta máquina, não um padrão. Relatórios deste teste comprovam a serialização dos cancelamentos; conferir salvamento pelo diálogo e relatório de uma execução prolongada concluída ainda exige validação adicional.

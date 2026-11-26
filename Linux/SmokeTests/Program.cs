@@ -1,6 +1,16 @@
 using ResetExplode;
 using ResetExplode.Hardware;
 
+if (args.Length == 1 && args[0] == "--gpu-inventory")
+{
+    foreach (var gpu in LinuxGpuInventory.Read())
+    {
+        Console.WriteLine(gpu.Name);
+        foreach (var entry in gpu.Entries) Console.WriteLine($"  {entry.Name}: {entry.Value}");
+    }
+    return;
+}
+
 if (args.Length == 1 && args[0] == "--drm-sensors")
 {
     var snapshot = new LinuxDrmSensors(new LinuxFiles()).Read();
@@ -362,6 +372,7 @@ MountChecks.Run();
 PowerChecks.Run();
 TelemetryChecks.Run();
 DrmSensorChecks.Run();
+GpuInventoryChecks.Run();
 if (args.Contains("--telemetry-only")) return;
 if (args.Contains("--live-telemetry"))
 {

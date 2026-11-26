@@ -586,6 +586,30 @@
             <StackPanel Spacing="20">
         <Border Classes="card">
           <StackPanel Spacing="12">
+            <Expander x:Name="GpuInventoryExpander" Header="Identificação e especificações das GPUs" HorizontalAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <TextBlock x:Name="GpuInventoryStatus" Text="Aguardando inventário…" Classes="sub" />
+                <ItemsControl x:Name="GpuInventoryEntries">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="hw:GpuSpecifications">
+                      <StackPanel Spacing="8" Margin="0,8">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding Entries}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="hw:SystemEntry">
+                              <Grid ColumnDefinitions="*,*" Margin="0,4">
+                                <TextBlock Text="{Binding Name}" Classes="sub" Margin="0,0,12,0" />
+                                <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Expander>
             <TextBlock Text="Stress de GPU" Classes="big" />
             <TextBlock Text="Escolha qual placa de vídeo receberá a carga. A detecção inclui GPUs integradas e dedicadas disponíveis no Vulkan." Classes="sub" />
             <TextBlock x:Name="GpuDetectionText" Text="Aguardando detecção automática…" Classes="sub" />

@@ -121,6 +121,23 @@ public sealed class LinuxNvml : IGpuSensorSource
         return new(pciAddress, temperature, started, null);
     }
 
+    public NvidiaSpecifications? ReadSpecifications(string pciAddress)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        Initialize();
+        if (!_initialized) return null;
+        var lookup = Export<PciDevice>("nvmlDeviceGetHandleByPciBusId_v2");
+        if (lookup == null || lookup(pciAddress, out var handle) != 0) return null;
+        string? Text(string symbol)
+        {
+            var buffer = new StringBuilder(128);
+            return Export<Name>(symbol)?.Invoke(handle, buffer, (uint)buffer.Capacity) == 0 ? buffer.ToString() : null;
+        }
+        MemoryInfo memory = default;
+        int code = Export<MemoryValue>("nvmlDeviceGetMemoryInfo")?.Invoke(handle, out memory) ?? -1;
+        return new(Text("nvmlDeviceGetName"), code == 0 ? memory.Total : null, Text("nvmlDeviceGetVbiosVersion"));
+    }
+
     private void Release()
     {
         if (_library == IntPtr.Zero) return;
