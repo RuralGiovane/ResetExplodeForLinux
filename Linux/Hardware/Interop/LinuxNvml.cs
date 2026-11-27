@@ -135,7 +135,25 @@ public sealed class LinuxNvml : IGpuSensorSource
         }
         MemoryInfo memory = default;
         int code = Export<MemoryValue>("nvmlDeviceGetMemoryInfo")?.Invoke(handle, out memory) ?? -1;
-        return new(Text("nvmlDeviceGetName"), code == 0 ? memory.Total : null, Text("nvmlDeviceGetVbiosVersion"));
+        uint? PositiveUInt(string symbol)
+        {
+            uint value = 0;
+            return Export<UIntValue>(symbol)?.Invoke(handle, out value) == 0 && value is > 0 and < uint.MaxValue
+                ? value : null;
+        }
+        uint? MaxClock(uint domain)
+        {
+            uint value = 0;
+            return Export<FieldValue>("nvmlDeviceGetMaxClockInfo")?.Invoke(handle, domain, out value) == 0 && value is > 0 and < uint.MaxValue
+                ? value : null;
+        }
+        return new(Text("nvmlDeviceGetName"), code == 0 ? memory.Total : null, Text("nvmlDeviceGetVbiosVersion"))
+        {
+            GpuCores = PositiveUInt("nvmlDeviceGetNumGpuCores"),
+            MemoryBusWidthBits = PositiveUInt("nvmlDeviceGetMemoryBusWidth"),
+            MaxGraphicsClockMhz = MaxClock(0), // NVML_CLOCK_GRAPHICS
+            MaxMemoryClockMhz = MaxClock(2) // NVML_CLOCK_MEM; raw MHz, not effective data rate.
+        };
     }
 
     private void Release()

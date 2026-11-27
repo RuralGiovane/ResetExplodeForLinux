@@ -4,7 +4,13 @@ using System.Text.RegularExpressions;
 namespace ResetExplode.Hardware;
 
 public sealed record GpuSpecifications(string PciAddress, string Name, IReadOnlyList<SystemEntry> Entries);
-public sealed record NvidiaSpecifications(string? Name, ulong? MemoryBytes, string? Vbios);
+public sealed record NvidiaSpecifications(string? Name, ulong? MemoryBytes, string? Vbios)
+{
+    public uint? GpuCores { get; init; }
+    public uint? MemoryBusWidthBits { get; init; }
+    public uint? MaxGraphicsClockMhz { get; init; }
+    public uint? MaxMemoryClockMhz { get; init; }
+}
 
 /// <summary>Inventário PCI somente de leitura, independente de Vulkan e de sensores térmicos.</summary>
 public sealed class LinuxGpuInventory(LinuxFiles files)
@@ -54,6 +60,15 @@ public sealed class LinuxGpuInventory(LinuxFiles files)
             if (vendor == 0x1002 && driver == "amdgpu" && LinuxFiles.Integer(files.Read(path + "/mem_info_vram_total")) is >= 0 and var bytes)
                 memory = (ulong)bytes;
             Add("Memória reportada pelo driver", memory is ulong m ? $"{m / 1073741824.0:N2} GiB" : null);
+            // These are independent optional queries, never estimates from model names or clocks.
+            string? Positive(uint? value, string unit = "") => value is > 0 and < uint.MaxValue
+                ? value.Value.ToString(CultureInfo.CurrentCulture) + unit : null;
+            Add("Núcleos GPU (NVML)", Positive(nv?.GpuCores));
+            Add("Barramento de memória (NVML)", Positive(nv?.MemoryBusWidthBits, " bits"));
+            Add("Clock gráfico máximo reportado (NVML)", Positive(nv?.MaxGraphicsClockMhz, " MHz"));
+            Add("Clock de memória máximo reportado (NVML)", Positive(nv?.MaxMemoryClockMhz, " MHz"));
+            Add("Tipo de memória", null);
+            Add("Processo de fabricação (litografia)", null);
             Add("Fontes", nv != null ? "PCI/sysfs + NVML (associação por PCI)" : "PCI/sysfs");
             result.Add(new(pci, name, rows));
         }

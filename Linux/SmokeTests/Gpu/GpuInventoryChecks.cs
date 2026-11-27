@@ -29,7 +29,11 @@ internal static class GpuInventoryChecks
             var first = collector.Collect(pci =>
             {
                 Check(pci == nv, "NVML consultado para outra placa.");
-                return new("NVIDIA fixture", 4294967296, "fixture-bios");
+                return new("NVIDIA fixture", 4294967296, "fixture-bios")
+                {
+                    GpuCores = 896, MemoryBusWidthBits = 128,
+                    MaxGraphicsClockMhz = 2130, MaxMemoryClockMhz = 4001
+                };
             });
             string Value(string pci, string label) => first.Single(g => g.PciAddress == pci).Entries.Single(e => e.Name == label).Value;
             Check(first.Count == 3, "Áudio PCI entrou no inventário GPU.");
@@ -40,6 +44,24 @@ internal static class GpuInventoryChecks
             Check(Value(amd, "Driver do kernel") == "amdgpu", "Link relativo do driver não resolvido.");
             Check(Value(amd, "Memória reportada pelo driver") == $"{8.0:N2} GiB", "VRAM AMD não convertida.");
             Check(Value(nv, "Memória reportada pelo driver") == $"{4.0:N2} GiB", "VRAM NVIDIA não convertida.");
+            Check(Value(nv, "Núcleos GPU (NVML)") == "896", "Contagem de núcleos perdida.");
+            Check(Value(nv, "Barramento de memória (NVML)") == "128 bits", "Barramento de memória confundido com PCIe.");
+            Check(Value(nv, "Clock gráfico máximo reportado (NVML)") == "2130 MHz", "Clock gráfico máximo perdido.");
+            Check(Value(nv, "Clock de memória máximo reportado (NVML)") == "4001 MHz", "Clock convertido indevidamente em taxa efetiva.");
+            foreach (string pci in new[] { intel, amd })
+                Check(Value(pci, "Núcleos GPU (NVML)") == "Indisponível" && Value(pci, "Barramento de memória (NVML)") == "Indisponível",
+                    "Especificações NVIDIA atribuídas a outra GPU.");
+            Check(Value(nv, "Tipo de memória") == "Indisponível" && Value(nv, "Processo de fabricação (litografia)") == "Indisponível",
+                "Especificação comercial inferida sem fonte.");
+            var partial = collector.Collect(_ => new("NVIDIA fixture", 4294967296, "fixture-bios")
+            {
+                GpuCores = 0, MemoryBusWidthBits = uint.MaxValue, MaxMemoryClockMhz = 4001
+            }).Single(g => g.PciAddress == nv);
+            Check(partial.Entries.Single(e => e.Name == "Núcleos GPU (NVML)").Value == "Indisponível" &&
+                partial.Entries.Single(e => e.Name == "Barramento de memória (NVML)").Value == "Indisponível" &&
+                partial.Entries.Single(e => e.Name == "Clock gráfico máximo reportado (NVML)").Value == "Indisponível" &&
+                partial.Entries.Single(e => e.Name == "Clock de memória máximo reportado (NVML)").Value == "4001 MHz",
+                "Ausência/valor inválido contaminou especificações independentes.");
             var vk = new RenderGpu("Intel Vulkan fixture", intel, 0x8086, true) { Kind = "Integrada", ApiVersion = "1.3.0" };
             Check(LinuxGpuInventory.WithVulkan(first, [vk]).Single(g => g.PciAddress == intel).Name == vk.Name,
                 "Modelo Vulkan não associado por PCI.");
