@@ -67,8 +67,15 @@ public sealed class LinuxGpuInventory(LinuxFiles files)
             Add("Barramento de memória (NVML)", Positive(nv?.MemoryBusWidthBits, " bits"));
             Add("Clock gráfico máximo reportado (NVML)", Positive(nv?.MaxGraphicsClockMhz, " MHz"));
             Add("Clock de memória máximo reportado (NVML)", Positive(nv?.MaxMemoryClockMhz, " MHz"));
-            Add("Tipo de memória", null);
-            Add("Processo de fabricação (litografia)", null);
+            var reference = GpuReferenceCatalog.Find(vendor, Hex("device", 0xffff), product);
+            Add("Tipo de memória", reference == null ? null : reference.MemoryType + " (referência)");
+            Add("Processo de fabricação (litografia)", reference == null ? null : reference.Process + " (referência)");
+            if (reference != null)
+            {
+                Add("Modelo de referência", reference.Model);
+                Add("Fonte das especificações de referência", GpuReferenceCatalog.SpecificationSource);
+                Add("Fonte da identificação PCI", GpuReferenceCatalog.IdentitySource);
+            }
             Add("Fontes", nv != null ? "PCI/sysfs + NVML (associação por PCI)" : "PCI/sysfs");
             result.Add(new(pci, name, rows));
         }

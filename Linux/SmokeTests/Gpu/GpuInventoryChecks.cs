@@ -83,6 +83,36 @@ internal static class GpuInventoryChecks
             using var stop = new CancellationTokenSource(); stop.Cancel();
             try { collector.Collect(cancellation: stop.Token); throw new Exception("Cancelamento ignorado."); }
             catch (OperationCanceledException) { }
+            // Reference data require exact documented IDs; telemetry must remain independent.
+            foreach (var sample in new[]
+            {
+                (Id: "0x1b06", Name: "NVIDIA GeForce GTX 1080 Ti", Memory: "GDDR5X (referência)", Process: "16 nm (referência)"),
+                (Id: "0x1e04", Name: "NVIDIA GeForce RTX 2080 Ti", Memory: "GDDR6 (referência)", Process: "12 nm FFN (referência)"),
+                (Id: "0x1e07", Name: "geforce rtx 2080 ti", Memory: "GDDR6 (referência)", Process: "12 nm FFN (referência)")
+            })
+            {
+                Write(nv, "device", sample.Id);
+                var referenced = collector.Collect(_ => new(sample.Name, 4294967296, null)).Single(g => g.PciAddress == nv);
+                string Ref(string label) => referenced.Entries.Single(e => e.Name == label).Value;
+                Check(Ref("Tipo de memória") == sample.Memory && Ref("Processo de fabricação (litografia)") == sample.Process,
+                    "Referência documentada não associada pelo PCI.");
+                Check(Ref("Fonte das especificações de referência").StartsWith("https://developer.nvidia.com/", StringComparison.Ordinal) &&
+                    Ref("Fonte da identificação PCI").StartsWith("https://download.nvidia.com/", StringComparison.Ordinal), "Referência sem proveniência.");
+                Check(Ref("Memória reportada pelo driver") == $"{4.0:N2} GiB" && Ref("Núcleos GPU (NVML)") == "Indisponível",
+                    "Catálogo substituiu medição do driver ou inventou núcleos.");
+                Check(collector.Collect().Single(g => g.PciAddress == nv).Entries.Single(e => e.Name == "Tipo de memória").Value == sample.Memory,
+                    "Catálogo PCI passou a exigir NVML.");
+            }
+            foreach (string conflicting in new[] { "GeForce RTX 2080", "GeForce RTX 2080 Ti SUPER", "GeForce RTX 2080 Ti Laptop GPU" })
+                Check(collector.Collect(_ => new(conflicting, null, null)).Single(g => g.PciAddress == nv).Entries
+                    .Single(e => e.Name == "Tipo de memória").Value == "Indisponível", "Nome conflitante aceito por semelhança.");
+            Write(nv, "device", "0x1f9d");
+            Check(collector.Collect(_ => new("NVIDIA GeForce GTX 1650", 4294967296, null) { MaxMemoryClockMhz = 6001 })
+                .Single(g => g.PciAddress == nv).Entries.Single(e => e.Name == "Tipo de memória").Value == "Indisponível",
+                "GTX 1650 ambígua recebeu tipo de memória pelo clock ou nome.");
+            Write(amd, "device", "0x1e07");
+            Check(collector.Collect().Single(g => g.PciAddress == amd).Entries.Single(e => e.Name == "Tipo de memória").Value == "Indisponível",
+                "Catálogo ignorou o fabricante PCI.");
             Directory.Delete(Path.Combine(root, "sys/bus/pci/devices", nv), true);
             Check(collector.Collect().Count == 2 && first.Count == 3, "Remoção manteve GPU antiga ou alterou snapshot.");
             Console.WriteLine("OK: inventário GPU PCI, associação NVML, unidades, ausência, inválidos, remoção e cancelamento.");
